@@ -1,6 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿//===================================================================
+//                  Created by Jordy Stabèl 2018
+//            https://github.com/JordyStabel/City-Builder
+//===================================================================
 
 public class LooseObject {
     

@@ -1,28 +1,49 @@
-﻿using UnityEngine;
+﻿//===================================================================
+//                  Created by Jordy Stabèl 2018
+//            https://github.com/JordyStabel/City-Builder
+//===================================================================
+
+using UnityEngine;
 
 public class WorldController : MonoBehaviour {
 
-    [Header("Sprite for floor tile")]
+    // Creating an instance of 'WorldController' which is accessible from all classes
+    public static WorldController Instance { get; protected set; }
+
+    [Header("Floor tile sprite")]
     public Sprite floorSprite;
 
-    World world;
-    
-    // Create new world
-	void Start () {
+    // The world, holds all tile data
+    public World World { get; protected set; }
+
+    /// <summary>
+    /// Create new world
+    /// </summary>
+    void Start () {
+
+        // Setting the instance equal to this current one (with check)
+        if (Instance != null)
+            Debug.LogError("There shouldn't be two world controllers.");
+        else
+            Instance = this;
 
         // Create new world with empty tiles
-        world = new World();
+        World = new World();
 
         // Create a GameObject for each tile
-        for (int x = 0; x < world.Width; x++)
+        for (int x = 0; x < World.Width; x++)
         {
-            for (int y = 0; y < world.Height; y++)
+            for (int y = 0; y < World.Height; y++)
             {
+                // Get the tile data
+                Tile tile_Data = World.GetTileAt(x, y);
+
                 // Adding a Tile script, name and postion to each tile_gameObject
                 GameObject tile_GameObject = new GameObject();
-                Tile tile_Data = world.GetTileAt(x, y);
                 tile_GameObject.name = "Tile_" + x + "_" + y;
                 tile_GameObject.transform.position = new Vector2(tile_Data.X, tile_Data.Y);
+                // Setting the new tile as a child, maintaining a clean hierarchy
+                tile_GameObject.transform.SetParent(this.transform, true);
 
                 // Add SpriteRenderer to each tile_gameObject
                 tile_GameObject.AddComponent<SpriteRenderer>();
@@ -33,13 +54,14 @@ public class WorldController : MonoBehaviour {
         }
 
         // Randomize all tiles in the world this was just created (thus calling the 'OnTileTypeChanged' function for each tile)
-        world.RandomizeTiles();
+        World.RandomizeTiles();
 	}
-    
-	void Update () {
-    }
 
-    // Change the tile sprite upon changing its tileType
+    /// <summary>
+    /// Change the tile sprite upon changing its tileType.
+    /// </summary>
+    /// <param name="tile_Data">The Tile</param>
+    /// <param name="tile_GameObject">The GameObject of the Tile</param>
     void OnTileTypeChanged(Tile tile_Data, GameObject tile_GameObject)
     {
         if (tile_Data.Type == Tile.TileType.Floor)
