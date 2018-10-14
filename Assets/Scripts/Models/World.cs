@@ -7,6 +7,17 @@ public class World {
     int width;
     int height;
 
+    // Return width of the world
+    public int Width {
+        get { return width; }
+    }
+
+    // Return height of the world
+    public int Height
+    {
+        get { return height; }
+    }
+
     // World constructor, default: width = 100, height = 100
     public World (int width = 100, int height = 100)
     {
@@ -25,8 +36,7 @@ public class World {
                 tiles[x, y] = new Tile(this, x, y);
             }
         }
-
-        Debug.Log("World created with: " + width * height + " tiles");
+        Debug.Log("World created with: " + width * height + " tiles (width: " + width + ", height: " + height );
     }
 
     // Returns tile at certain coordinates
@@ -40,5 +50,22 @@ public class World {
             return null;
         }
         return tiles[x, y];
+    }
+
+    // Test function
+    public void RandomizeTiles()
+    {
+        Debug.Log("Tiles randomized!");
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (Random.Range(0, 2) == 0)
+                    tiles[x, y].Type = Tile.TileType.Empty;
+                else
+                    tiles[x, y].Type = Tile.TileType.Floor;
+            }
+        }
     }
 }
