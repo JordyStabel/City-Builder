@@ -71,4 +71,18 @@ public class WorldController : MonoBehaviour {
         else
             Debug.LogError("OnTileTypeChanged - Unknown tile type.");
     }
+
+    /// <summary>
+    /// Check which tile the mouse hovers over and then return that tile
+    /// </summary>
+    /// <param name="coordinates"></param>
+    /// <returns>Return a tile at the current mouse coordinates</returns>
+    public Tile GetTileAtWorldCoordinate(Vector2 coordinates)
+    {
+        // Round float to int, since the tiles are all 1 by 1 unit
+        int x = Mathf.FloorToInt(coordinates.x);
+        int y = Mathf.FloorToInt(coordinates.y);
+
+        return World.GetTileAt(x, y);
+    }
 }
