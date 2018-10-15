@@ -5,6 +5,7 @@
 
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class MouseController : MonoBehaviour {
 
@@ -17,6 +18,8 @@ public class MouseController : MonoBehaviour {
     [Header("Player settings")]
     [Tooltip("Default: 1, higher = faster")]
     public float zoomSpeed = 1f;
+
+    Tile.TileType buildModeTileType = Tile.TileType.Floor;
 
     // The world position of the mouse
     Vector2 currentFrameMousePosition;
@@ -77,8 +80,13 @@ public class MouseController : MonoBehaviour {
     /// </summary>
     private void UpdateDragMovement()
     {
-        // Start drag movement
-        // Check if left mouse button was pressed
+        // Prevent stuff from happening when mouse is over UI elements
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        #region Start drag movement
+        // Check if left mouse button was pressed.
+        // Prevent stuff from happening when mouse is over UI elements.
         if (Input.GetMouseButtonDown(0))
             // Save starting tile
             startDragTilePosition = currentFrameMousePosition;
@@ -128,8 +136,9 @@ public class MouseController : MonoBehaviour {
                 }
             }
         }
+        #endregion
 
-        // End drag movement
+        #region End drag movement
         // Check if left mouse button was released
         if (Input.GetMouseButtonUp(0))
         {
@@ -140,7 +149,7 @@ public class MouseController : MonoBehaviour {
                 {
                     Tile tile = WorldController.Instance.World.GetTileAt(x, y);
                     if (tile != null)
-                        tile.Type = Tile.TileType.Floor;
+                        tile.Type = buildModeTileType;
                 }
             }
 
@@ -154,6 +163,7 @@ public class MouseController : MonoBehaviour {
             //}
             #endregion
         }
+        #endregion
     }
 
     /// <summary>
@@ -177,5 +187,15 @@ public class MouseController : MonoBehaviour {
 
         // Limit the max zoom in and out
         Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, 2.5f, 30f);
+    }
+
+    public void SetMode_BuildFloor()
+    {
+        buildModeTileType = Tile.TileType.Floor;
+    }
+
+    public void SetMode_Destroy()
+    {
+        buildModeTileType = Tile.TileType.Empty;
     }
 }

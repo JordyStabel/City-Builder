@@ -53,11 +53,8 @@ public class World {
     {
         // Check if coordinates are in range of the world
         if (x > Width || x < 0 || y > Height || y < 0)
-        {
-            Debug.LogError("Tile (" + x + "," + y + ") is out of range.");
-
             return null;
-        }
+
         return tiles[x, y];
     }
 
