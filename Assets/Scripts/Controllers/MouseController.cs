@@ -4,6 +4,7 @@
 //===================================================================
 
 using UnityEngine;
+using System.Collections.Generic;
 
 public class MouseController : MonoBehaviour {
 
@@ -13,17 +14,33 @@ public class MouseController : MonoBehaviour {
     [Header("Prefab of 'cursor' sprite")]
     public GameObject circleCursorPrefab;
 
+    [Header("Player settings")]
+    [Tooltip("Default: 1, higher = faster")]
+    public float zoomSpeed = 1f;
+
     // The world position of the mouse
     Vector2 currentFrameMousePosition;
     Vector2 lastFrameMousePosition;
 
     // The world position at start of left mouse drag movement
     Vector2 startDragTilePosition;
-	
-	void Update () {
+
+    // Create list that holds the 'placement preview objects'
+    List<GameObject> dragPreviewGameObjects;
+
+    // Instance of ObjectPooler
+    ObjectPooler objectPooler;
+
+    void Start()
+    {
+        dragPreviewGameObjects = new List<GameObject>();
+        objectPooler = ObjectPooler.Instance;
+    }
+
+    void Update () {
         currentFrameMousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        // UpdateCursor();
+        UpdateCursor();
         UpdateDragMovement();
         UpdateCameraMovement();
     
@@ -66,29 +83,56 @@ public class MouseController : MonoBehaviour {
             // Save starting tile
             startDragTilePosition = currentFrameMousePosition;
 
+        int start_X = Mathf.FloorToInt(startDragTilePosition.x);
+        int end_X = Mathf.FloorToInt(currentFrameMousePosition.x);
+        int start_Y = Mathf.FloorToInt(startDragTilePosition.y);
+        int end_Y = Mathf.FloorToInt(currentFrameMousePosition.y);
+
+        // Swap intergers if players drags from top to bottom or right to left
+        if (end_X < start_X)
+        {
+            int temp = end_X;
+            end_X = start_X;
+            start_X = temp;
+        }
+        if (end_Y < start_Y)
+        {
+            int temp = end_Y;
+            end_Y = start_Y;
+            start_Y = temp;
+        }
+
+        // While there are pooled object in the list, remove them
+        while (dragPreviewGameObjects.Count > 0)
+        {
+            GameObject gameObject = dragPreviewGameObjects[0];
+            dragPreviewGameObjects.RemoveAt(0);
+            objectPooler.DespawnFromPool(gameObject);
+        }
+
+        // Display a preview of all selected tiles
+        if (Input.GetMouseButton(0))
+        {
+            // Loop through all selected tiles and change them
+            for (int x = start_X; x <= end_X; x++)
+            {
+                for (int y = start_Y; y <= end_Y; y++)
+                {
+                    Tile tile = WorldController.Instance.World.GetTileAt(x, y);
+
+                    if (tile != null)
+                    {
+                        GameObject gameObject = objectPooler.SpawnFromPool("preview_Cursor", new Vector2(x, y), Quaternion.identity);
+                        dragPreviewGameObjects.Add(gameObject);
+                    }
+                }
+            }
+        }
+
         // End drag movement
         // Check if left mouse button was released
         if (Input.GetMouseButtonUp(0))
         {
-            int start_X = Mathf.FloorToInt(startDragTilePosition.x);
-            int end_X = Mathf.FloorToInt(currentFrameMousePosition.x);
-            int start_Y = Mathf.FloorToInt(startDragTilePosition.y);
-            int end_Y = Mathf.FloorToInt(currentFrameMousePosition.y);
-
-            // Swap intergers if players drags from top to bottom or right to left
-            if (end_X < start_X)
-            {
-                int temp = end_X;
-                end_X = start_X;
-                start_X = temp;
-            }
-            if (end_Y < start_Y)
-            {
-                int temp = end_Y;
-                end_Y = start_Y;
-                start_Y = temp;
-            }
-
             // Loop through all selected tiles and change them
             for (int x = start_X; x <= end_X; x++)
             {
@@ -126,5 +170,12 @@ public class MouseController : MonoBehaviour {
             // add '-' to difference to invert the controls
             Camera.main.transform.Translate(difference);
         }
+
+        // Zoom effect, controlled by mouse scrolling
+        // The second 'Camera.main.orthographicSize' makes it feel consitant even when zooming out alot
+        Camera.main.orthographicSize -= Camera.main.orthographicSize * Input.GetAxis("Mouse ScrollWheel") * zoomSpeed;
+
+        // Limit the max zoom in and out
+        Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, 2.5f, 30f);
     }
 }

@@ -113,11 +113,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &373353764 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1415210852408166, guid: c7f36175f8d964440a474ebe18f03e77,
-    type: 2}
-  m_PrefabInternal: {fileID: 1749395927}
 --- !u!1 &534669902
 GameObject:
   m_ObjectHideFlags: 0
@@ -235,8 +230,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48cdeaefb9dc002488a37ec9c420cffd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  circleCursor: {fileID: 373353764}
---- !u!1001 &1749395927
+  circleCursor: {fileID: 2028782056}
+  circleCursorPrefab: {fileID: 1415210852408166, guid: c7f36175f8d964440a474ebe18f03e77,
+    type: 2}
+  zoomSpeed: 1
+--- !u!1 &1869750804
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1869750806}
+  - component: {fileID: 1869750805}
+  m_Layer: 0
+  m_Name: ObjectPooler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1869750805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1869750804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0989299f54875ab44962df9373ea2ce8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pools:
+  - tag: preview_Cursor
+    prefab: {fileID: 1415210852408166, guid: c7f36175f8d964440a474ebe18f03e77, type: 2}
+    poolSize: 5000
+--- !u!4 &1869750806
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1869750804}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2028782055
 Prefab:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -278,6 +320,11 @@ Prefab:
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c7f36175f8d964440a474ebe18f03e77, type: 2}
   m_IsPrefabAsset: 0
+--- !u!1 &2028782056 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1415210852408166, guid: c7f36175f8d964440a474ebe18f03e77,
+    type: 2}
+  m_PrefabInternal: {fileID: 2028782055}
 --- !u!1 &2059884373
 GameObject:
   m_ObjectHideFlags: 0
