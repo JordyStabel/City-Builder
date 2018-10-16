@@ -34,6 +34,8 @@ public class InstalledObject {
     // Callback action for changing something on or with InstalledObject
     Action<InstalledObject> cb_OnChanged;
 
+    Func<Tile, bool> funcPositionValidation;
+
     // TODO: Implement larger objects
     // TODO: Implement object rotation
 
@@ -57,7 +59,11 @@ public class InstalledObject {
             width = width,
             height = height,
             IsLinkedToNeighbour = isLinkedToNeighbour
+            
         };
+
+        // Add validation function
+        installedObject.funcPositionValidation = installedObject.IsValidPosition;
 
         return installedObject;
     }
@@ -70,6 +76,10 @@ public class InstalledObject {
     /// <returns>InstalledObject</returns>
     static public InstalledObject PlaceObject(InstalledObject baseObject, Tile tile)
     {
+        // Don't place installedObject if it's not allowed
+        if (baseObject.funcPositionValidation(tile) == false)
+            return null;
+
         InstalledObject installedObject = new InstalledObject
         {
             ObjectType = baseObject.ObjectType,
@@ -121,15 +131,37 @@ public class InstalledObject {
     }
 
     /// <summary>
-    /// Sub function, to make code little cleaner.
-    /// Check if: there are neighbouring tiles, if those tiles have installedObject on them & if those objects are of the same type.
+    /// Validate whether it's allowed to place an installedObject on a certain tile.
     /// </summary>
-    /// <param name="tile">Tile to check.</param>
-    /// <param name="installedObject">InstalledObject to compare with.</param>
-    /// <returns>True or false</returns>
-    private bool TileCheck(Tile tile, InstalledObject installedObject)
+    /// <param name="tile">Tile the validate.</param>
+    /// <returns>isValid</returns>
+    public bool IsValidPosition(Tile tile)
     {
-        return (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType);
+        // Make sure tile is of type Floor
+        // Make sure tile doesn't already have installedObject
+
+        if (tile.Type != TileType.Floor)
+            return false;
+
+        if (tile.InstalledObject != null)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Validation for placing a door
+    /// </summary>
+    /// <param name="tile">Tile the validate.</param>
+    /// <returns>isValid</returns>
+    public bool IsValidPosition_Door(Tile tile)
+    {
+        // Run 'normal' validation first
+        if (IsValidPosition(tile) == false)
+            return false;
+
+        // Make sure there is either a NS or SW wall, to place the door in.
+        return true;
     }
 
     /// <summary>

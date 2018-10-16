@@ -20,6 +20,9 @@ public class WorldController : MonoBehaviour {
     [Header("Floor tile sprite")]
     public Sprite floorSprite;
 
+    [Header("Empty tile sprite")]
+    public Sprite emptySprite;
+
     // Sprites array
     Sprite[] sprites;
 
@@ -70,16 +73,19 @@ public class WorldController : MonoBehaviour {
                 // Setting the new tile as a child, maintaining a clean hierarchy
                 tile_GameObject.transform.SetParent(this.transform, true);
 
-                // Add SpriteRenderer to each tile_gameObject
-                tile_GameObject.AddComponent<SpriteRenderer>();
+                // Add SpriteRenderer and default empty sprite to each tile_gameObject
+                tile_GameObject.AddComponent<SpriteRenderer>().sprite = emptySprite;
 
                 // Register action, which will run the funtion when 'tile' gets changed
                 tile_Data.RegisterTileTypeChangedCallback(OnTileTypeChanged);
             }
         }
 
+        // Center camera in the world
+        Camera.main.transform.position = new Vector3(World.Width / 2, World.Height / 2, Camera.main.transform.position.z);
+
         // Randomize all tiles in the world this was just created (thus calling the 'OnTileTypeChanged' function for each tile)
-        World.RandomizeTiles();
+        //World.RandomizeTiles();
 	}
 
     /// <summary>
@@ -90,10 +96,7 @@ public class WorldController : MonoBehaviour {
         // Loading all sprites and adding them to the dictionary
         sprites = Resources.LoadAll<Sprite>("Sprites/Walls");
         foreach (Sprite sprite in sprites)
-        {
-            Debug.Log(sprite);
             installedObjectSpritesMap[sprite.name] = sprite;
-        }
     }
 
     #region CURRENTLY NOT IN USE - Unbind pairs in dictionary

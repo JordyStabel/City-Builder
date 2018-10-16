@@ -12,7 +12,6 @@ using UnityEditor;
 [CustomEditor(typeof(WorldController))]
 public class WorldControllerEditor : Editor
 {
-
     public override void OnInspectorGUI()
     {
         // Make normal properties show up in inspector
