@@ -71,9 +71,9 @@ public class World {
             for (int y = 0; y < Height; y++)
             {
                 if (Random.Range(0, 2) == 0)
-                    tiles[x, y].Type = Tile.TileType.Empty;
+                    tiles[x, y].Type = TileTypes.Empty;
                 else
-                    tiles[x, y].Type = Tile.TileType.Floor;
+                    tiles[x, y].Type = TileTypes.Floor;
             }
         }
     }

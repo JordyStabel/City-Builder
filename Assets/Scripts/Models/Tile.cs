@@ -6,20 +6,16 @@
 using System;
 
 public class Tile {
-
-    // TileType
-    public enum TileType { Empty, Floor };
-
     // Tiletype default = 'Empty'
     // Type getter & setter
-    private TileType type = TileType.Empty;
-    public TileType Type
+    private TileTypes type = TileTypes.Empty;
+    public TileTypes Type
     {
         get { return type; }
         set
         {
             // Add previousType to prevent calling 'cbTileTypeChanged' if type didn't change
-            TileType previousType = type;
+            TileTypes previousType = type;
             type = value;
             if (cbTileTypeChanged != null && previousType != type)
                 cbTileTypeChanged(this);

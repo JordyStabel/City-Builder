@@ -19,7 +19,8 @@ public class MouseController : MonoBehaviour {
     [Tooltip("Default: 1, higher = faster")]
     public float zoomSpeed = 1f;
 
-    Tile.TileType buildModeTileType = Tile.TileType.Floor;
+    bool buildModeIsObjects = false;
+    TileTypes buildModeTileType = TileTypes.Floor;
 
     // The world position of the mouse
     Vector2 currentFrameMousePosition;
@@ -62,7 +63,7 @@ public class MouseController : MonoBehaviour {
         Tile tileHoverOver = WorldController.Instance.GetTileAtWorldCoordinate(currentFrameMousePosition);
 
         // Check if the mouse is hovering over a tile (not empty tile too)
-        if (tileHoverOver != null && tileHoverOver.Type != Tile.TileType.Empty)
+        if (tileHoverOver != null && tileHoverOver.Type != TileTypes.Empty)
         {
             // Enable and set position cursor if tile isn't null
             circleCursor.SetActive(true); 
@@ -149,12 +150,23 @@ public class MouseController : MonoBehaviour {
                 {
                     Tile tile = WorldController.Instance.World.GetTileAt(x, y);
                     if (tile != null)
-                        tile.Type = buildModeTileType;
+                    {
+                        if (buildModeIsObjects)
+                        {
+                            // Building Objects
+
+                            // FIXME: Right now we can only build walls, nothing else
+                        }
+                        else
+                        {
+                            tile.Type = buildModeTileType;
+                        }
+                    }
                 }
             }
 
             #region Old bit of code
-            // if (tileHoverOver != null)                                                      // If tile isn't null, flip the tile type
+            // if (tileHoverOver != null) // If tile isn't null, flip the tile type
             //{
             //    if (tileHoverOver.Type == Tile.TileType.Empty)
             //        tileHoverOver.Type = Tile.TileType.Floor;
@@ -191,11 +203,19 @@ public class MouseController : MonoBehaviour {
 
     public void SetMode_BuildFloor()
     {
-        buildModeTileType = Tile.TileType.Floor;
+        buildModeIsObjects = false;
+        buildModeTileType = TileTypes.Floor;
     }
 
     public void SetMode_Destroy()
     {
-        buildModeTileType = Tile.TileType.Empty;
+        buildModeIsObjects = false;
+        buildModeTileType = TileTypes.Empty;
+    }
+
+    public void SetMode_BuildWall()
+    {
+        // A wall isn't a Tile type. Wall is an "InstalledObject" that exists on top of a Tile.
+        buildModeIsObjects = true;
     }
 }

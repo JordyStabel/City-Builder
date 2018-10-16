@@ -4,5 +4,5 @@
 //===================================================================
 
 public class LooseObject {
-    
+    // Things like resource piles, or not yet installed objects
 }

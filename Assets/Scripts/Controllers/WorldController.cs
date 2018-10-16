@@ -4,11 +4,16 @@
 //===================================================================
 
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 
 public class WorldController : MonoBehaviour {
 
     // Creating an instance of 'WorldController' which is accessible from all classes
     public static WorldController Instance { get; protected set; }
+
+    // Bind tile_Data to a GameObject
+    Dictionary<Tile, GameObject> tileGameObjectMap;
 
     [Header("Floor tile sprite")]
     public Sprite floorSprite;
@@ -30,6 +35,9 @@ public class WorldController : MonoBehaviour {
         // Create new world with empty tiles
         World = new World();
 
+        // Instatiate dictionary that binds a GameObject with Tile data 
+        tileGameObjectMap = new Dictionary<Tile, GameObject>();
+
         // Create a GameObject for each tile
         for (int x = 0; x < World.Width; x++)
         {
@@ -38,8 +46,13 @@ public class WorldController : MonoBehaviour {
                 // Get the tile data
                 Tile tile_Data = World.GetTileAt(x, y);
 
-                // Adding a Tile script, name and postion to each tile_gameObject
+                // Creating new gameObject
                 GameObject tile_GameObject = new GameObject();
+
+                // Add tile_Data and tile_GameObject to the dictionary (tile_Data is the key)
+                tileGameObjectMap.Add(tile_Data, tile_GameObject);
+
+                // Adding a name and position to each tile_gameObject
                 tile_GameObject.name = "Tile_" + x + "_" + y;
                 tile_GameObject.transform.position = new Vector2(tile_Data.X, tile_Data.Y);
                 // Setting the new tile as a child, maintaining a clean hierarchy
@@ -48,8 +61,8 @@ public class WorldController : MonoBehaviour {
                 // Add SpriteRenderer to each tile_gameObject
                 tile_GameObject.AddComponent<SpriteRenderer>();
 
-                // Register action using Lambda, which will run the funtion when 'tile' gets called
-                tile_Data.RegisterTileTypeChangedCallback( (tile) => { OnTileTypeChanged(tile, tile_GameObject); });
+                // Register action, which will run the funtion when 'tile' gets changed
+                tile_Data.RegisterTileTypeChangedCallback(OnTileTypeChanged);
             }
         }
 
@@ -57,16 +70,60 @@ public class WorldController : MonoBehaviour {
         World.RandomizeTiles();
 	}
 
+    #region CURRENTLY NOT IN USE - Unbind pairs in dictionary
+    /// <summary>
+    /// Unpair all tile_Data and tile GameObjects from the dictionary.
+    /// Destroy tile GameObject, the visual part in-game.
+    /// Can be used when creating new level and the old levels need to be removed.
+    /// </summary>
+    void DestroyAllTileGameObjects()
+    {
+        // Run while there are pair in the dictionary
+        while (tileGameObjectMap.Count > 0)
+        {
+            // Grab first pair from dictionary
+            Tile tile_Data = tileGameObjectMap.Keys.First();
+            GameObject tile_GameObject = tileGameObjectMap[tile_Data];
+
+            // Unpair tile_Data and tile_GameObject from dictionary, thus shrinking the dictionary
+            tileGameObjectMap.Remove(tile_Data);
+
+            tile_Data.UnregisterTileTypeChangedCallback(OnTileTypeChanged);
+            Destroy(tile_GameObject);
+        }
+
+        // TODO: Create new level...or something else
+    }
+    #endregion
+
     /// <summary>
     /// Change the tile sprite upon changing its tileType.
     /// </summary>
     /// <param name="tile_Data">The Tile</param>
     /// <param name="tile_GameObject">The GameObject of the Tile</param>
-    void OnTileTypeChanged(Tile tile_Data, GameObject tile_GameObject)
+    void OnTileTypeChanged(Tile tile_Data)
     {
-        if (tile_Data.Type == Tile.TileType.Floor)
+        // Check if tileGameObjectMap actually contains the tile_Data key
+        if (!tileGameObjectMap.ContainsKey(tile_Data))
+        {
+            Debug.LogError("tileGameObjectMap doesn't contain the tile_Data -- did you forget to add the tile to the dictionary? Or forgot to unregister a callback?");
+            return;
+        }
+
+        // Grabbing tile_GameObject from the dictionary. Using the tile_Data as the key
+        GameObject tile_GameObject = tileGameObjectMap[tile_Data];
+
+        // Check if the returned GameObject from the dictionary isn't null
+        if (tile_GameObject == null)
+        {
+            Debug.LogError("tileGameObjectMap's returned GameObject is null -- did you forget to add the tile to the dictionary? Or forgot to unregister a callback?");
+            return;
+        }
+
+        // Change to correct tile Sprite
+        if (tile_Data.Type == TileTypes.Floor)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = floorSprite;
-        else if (tile_Data.Type == Tile.TileType.Empty)
+        else if (tile_Data.Type == TileTypes.Empty)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = null;
         else
             Debug.LogError("OnTileTypeChanged - Unknown tile type.");
