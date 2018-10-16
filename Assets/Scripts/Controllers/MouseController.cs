@@ -20,7 +20,8 @@ public class MouseController : MonoBehaviour {
     public float zoomSpeed = 1f;
 
     bool buildModeIsObjects = false;
-    TileTypes buildModeTileType = TileTypes.Floor;
+    TileType buildModeTileType = TileType.Floor;
+    string buildModeObjectType;
 
     // The world position of the mouse
     Vector2 currentFrameMousePosition;
@@ -63,7 +64,7 @@ public class MouseController : MonoBehaviour {
         Tile tileHoverOver = WorldController.Instance.GetTileAtWorldCoordinate(currentFrameMousePosition);
 
         // Check if the mouse is hovering over a tile (not empty tile too)
-        if (tileHoverOver != null && tileHoverOver.Type != TileTypes.Empty)
+        if (tileHoverOver != null && tileHoverOver.Type != TileType.Empty)
         {
             // Enable and set position cursor if tile isn't null
             circleCursor.SetActive(true); 
@@ -156,6 +157,7 @@ public class MouseController : MonoBehaviour {
                             // Building Objects
 
                             // FIXME: Right now we can only build walls, nothing else
+                            WorldController.Instance.World.PlaceInstalledObject(buildModeObjectType, tile);
                         }
                         else
                         {
@@ -204,18 +206,23 @@ public class MouseController : MonoBehaviour {
     public void SetMode_BuildFloor()
     {
         buildModeIsObjects = false;
-        buildModeTileType = TileTypes.Floor;
+        buildModeTileType = TileType.Floor;
     }
 
     public void SetMode_Destroy()
     {
         buildModeIsObjects = false;
-        buildModeTileType = TileTypes.Empty;
+        buildModeTileType = TileType.Empty;
     }
 
-    public void SetMode_BuildWall()
+    /// <summary>
+    /// Set the build-mode and object-type
+    /// </summary>
+    /// <param name="objectType">The objectType the player wants to use</param>
+    public void SetMode_BuildInstalledObject(string objectType)
     {
         // A wall isn't a Tile type. Wall is an "InstalledObject" that exists on top of a Tile.
         buildModeIsObjects = true;
+        buildModeObjectType = objectType;
     }
 }

@@ -4,11 +4,16 @@
 //===================================================================
 
 using UnityEngine;
+using System.Collections.Generic;
+using System;
 
 public class World {
 
     // A 2D array that holds the tile data.
     Tile[,] tiles;
+
+    // Bind ObjectType to a InstalledObject
+    Dictionary<string, InstalledObject> installedBaseObjects;
 
     // Number of tiles as width in the world
     public int Width { get; protected set; }
@@ -16,6 +21,8 @@ public class World {
     // Number of tiles as height in the world
     public int Height { get; protected set; }
 
+    // Callback action for creating installedObject
+    Action<InstalledObject> cb_InstalledObjectCreated;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="World"/> class.
@@ -41,6 +48,19 @@ public class World {
             }
         }
         Debug.Log("World created with: " + width * height + " tiles (width: " + width + ", height: " + height );
+
+        // Create new dictionary of baseInstalledObjects
+        installedBaseObjects = new Dictionary<string, InstalledObject>();
+        CreateBaseInstalledObjects();
+    }
+
+    /// <summary>
+    /// Create baseInstalledObject and add it to the dictionary
+    /// </summary>
+    void CreateBaseInstalledObjects()
+    {
+        // Create and add baseInstalledObject to the dictionary
+        installedBaseObjects.Add("Wall", InstalledObject.CreateBaseObject("Wall", 0));
     }
 
     /// <summary>
@@ -70,11 +90,60 @@ public class World {
         {
             for (int y = 0; y < Height; y++)
             {
-                if (Random.Range(0, 2) == 0)
-                    tiles[x, y].Type = TileTypes.Empty;
+                if (UnityEngine.Random.Range(0, 2) == 0)
+                    tiles[x, y].Type = TileType.Empty;
                 else
-                    tiles[x, y].Type = TileTypes.Floor;
+                    tiles[x, y].Type = TileType.Floor;
             }
         }
+    }
+
+    /// <summary>
+    /// Search for correct InstalledObject in dictionary and place it on a tile
+    /// </summary>
+    /// <param name="objectType">InstalledObject key.</param>
+    /// <param name="tile">Tile to place InstalledObject on.</param>
+    public void PlaceInstalledObject(string objectType, Tile tile)
+    {
+        // TODO: Implement multiple tiles support
+        // TODO: Implement rotation
+
+        // Check if the dictionary contains an object with the given key (objectType)
+        if (installedBaseObjects.ContainsKey(objectType) == false)
+        {
+            Debug.LogError("installedBaseObjects doesn't contain a baseObject for key: " + objectType);
+            return;
+        }
+
+        // Actually place the object on a tile
+        InstalledObject installedObject = InstalledObject.PlaceObject(installedBaseObjects[objectType], tile);
+
+        if (installedObject == null)
+        {
+            // Failed to place installedObject -- most likely there was already something there.
+            return;
+        }
+
+        // If the callback action has registered function, call/execute them
+        if (cb_InstalledObjectCreated != null)
+            cb_InstalledObjectCreated(installedObject);
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void RegisterInstalledObjectCreated(Action<InstalledObject> callbackFunction)
+    {
+        cb_InstalledObjectCreated += callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void UnregisterInstalledObjectCreated(Action<InstalledObject> callbackFunction)
+    {
+        cb_InstalledObjectCreated -= callbackFunction;
     }
 }

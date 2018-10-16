@@ -6,17 +6,22 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public class WorldController : MonoBehaviour {
 
     // Creating an instance of 'WorldController' which is accessible from all classes
     public static WorldController Instance { get; protected set; }
 
-    // Bind tile_Data to a GameObject
+    // Bind data to a GameObject
     Dictionary<Tile, GameObject> tileGameObjectMap;
+    Dictionary<InstalledObject, GameObject> installedObjectGameObjectMap;
 
     [Header("Floor tile sprite")]
     public Sprite floorSprite;
+
+    [Header("Wall sprite")]
+    public Sprite wallSprite;
 
     // The world, holds all tile data
     public World World { get; protected set; }
@@ -35,8 +40,12 @@ public class WorldController : MonoBehaviour {
         // Create new world with empty tiles
         World = new World();
 
-        // Instatiate dictionary that binds a GameObject with Tile data 
+        // Register function
+        World.RegisterInstalledObjectCreated(OnInstalledObjectCreated);
+
+        // Instatiate dictionary that binds a GameObject with data 
         tileGameObjectMap = new Dictionary<Tile, GameObject>();
+        installedObjectGameObjectMap = new Dictionary<InstalledObject, GameObject>();
 
         // Create a GameObject for each tile
         for (int x = 0; x < World.Width; x++)
@@ -121,9 +130,9 @@ public class WorldController : MonoBehaviour {
         }
 
         // Change to correct tile Sprite
-        if (tile_Data.Type == TileTypes.Floor)
+        if (tile_Data.Type == TileType.Floor)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = floorSprite;
-        else if (tile_Data.Type == TileTypes.Empty)
+        else if (tile_Data.Type == TileType.Empty)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = null;
         else
             Debug.LogError("OnTileTypeChanged - Unknown tile type.");
@@ -141,5 +150,40 @@ public class WorldController : MonoBehaviour {
         int y = Mathf.FloorToInt(coordinates.y);
 
         return World.GetTileAt(x, y);
+    }
+
+    /// <summary>
+    /// Create the visual component linked to the given data
+    /// </summary>
+    /// <param name="installedObject">Functions as the data.</param>
+    public void OnInstalledObjectCreated(InstalledObject installedObject)
+    {
+        // Creating new gameObject
+        GameObject installedObject_GameObject = new GameObject();
+
+        // Add data and installedObject_GameObject to the dictionary (data is the key)
+        installedObjectGameObjectMap.Add(installedObject, installedObject_GameObject);
+
+        // Adding a name and position to each installedObject_GameObject
+        installedObject_GameObject.name = installedObject.ObjectType + "_" + installedObject.Tile.X + "_" + installedObject.Tile.Y;
+        installedObject_GameObject.transform.position = new Vector2(installedObject.Tile.X, installedObject.Tile.Y);
+        // Setting the new tile as a child, maintaining a clean hierarchy
+        installedObject_GameObject.transform.SetParent(this.transform, true);
+        
+        SpriteRenderer spriteRenderer = installedObject_GameObject.AddComponent(typeof(SpriteRenderer)) as SpriteRenderer;
+        spriteRenderer.sprite = wallSprite;
+        spriteRenderer.sortingLayerName = "TileUI";
+
+        // Register action, which will run the funtion when 'tile' gets changed
+        installedObject.RegisterOnChangedCallback(OnInstalledObjectCreated);
+    }
+
+    /// <summary>
+    /// Function that needs to run after changing an InstalledObject.
+    /// </summary>
+    /// <param name="installedObject">InstalledObject</param>
+    void OnInstalledObjectChanged(InstalledObject installedObject)
+    {
+        Debug.LogError("OnInstalledObjectChanged -- Not implemented!");
     }
 }

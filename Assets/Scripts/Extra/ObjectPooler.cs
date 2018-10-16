@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class ObjectPooler : MonoBehaviour {
 
@@ -55,11 +56,6 @@ public class ObjectPooler : MonoBehaviour {
         }
 	}
 
-    public void AddToPool(string poolTag, int quantity)
-    {
-
-    }
-
     /// <summary>
     /// 'Spawn' an object from the given object pool, on the given position and rotation.
     /// </summary>
@@ -70,7 +66,7 @@ public class ObjectPooler : MonoBehaviour {
     public GameObject SpawnFromPool(string tag, Vector2 position, Quaternion rotation)
     {
         // Check if tag actually excists.
-        if (!poolDictionary.ContainsKey(tag))
+        if (poolDictionary.ContainsKey(tag) == false)
         {
             Debug.LogWarning("Pool with tag: " + tag + " doesn't excist.");
             return null;

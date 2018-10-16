@@ -3,7 +3,7 @@
 //            https://github.com/JordyStabel/City-Builder
 //===================================================================
 
-public enum TileTypes {
+public enum TileType {
     Empty,
     Floor
 };

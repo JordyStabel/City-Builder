@@ -4,29 +4,30 @@
 //===================================================================
 
 using System;
+using UnityEngine;
 
 public class Tile {
     // Tiletype default = 'Empty'
     // Type getter & setter
-    private TileTypes type = TileTypes.Empty;
-    public TileTypes Type
+    private TileType type = TileType.Empty;
+    public TileType Type
     {
         get { return type; }
         set
         {
             // Add previousType to prevent calling 'cbTileTypeChanged' if type didn't change
-            TileTypes previousType = type;
+            TileType previousType = type;
             type = value;
-            if (cbTileTypeChanged != null && previousType != type)
-                cbTileTypeChanged(this);
+            if (cb_TileTypeChanged != null && previousType != type)
+                cb_TileTypeChanged(this);
         }
     }
 
     // LooseObject: static buildings, pile of resources, equipment, etc.
-    LooseObject loose;
+    LooseObject looseObject;
 
     // InstalledObject: wall, door, etc.
-    InstalledObject installed;
+    InstalledObject installedObject;
 
     // Data a Tile needs have access to
     World world;
@@ -34,8 +35,7 @@ public class Tile {
     public int Y { get; protected set; }
 
     // Callback action for changing tile type
-    Action<Tile> cbTileTypeChanged;
-
+    Action<Tile> cb_TileTypeChanged;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Tile"/> class. 
@@ -53,18 +53,43 @@ public class Tile {
     /// <summary>
     /// Register action with given function
     /// </summary>
-    /// <param name="callback">The function that is going to get registered.</param>
-    public void RegisterTileTypeChangedCallback(Action<Tile> callback)
+    /// <param name="callbackFunction">The function that is going to get registered.</param>
+    public void RegisterTileTypeChangedCallback(Action<Tile> callbackFunction)
     {
-        cbTileTypeChanged += callback;
+        cb_TileTypeChanged += callbackFunction;
     }
 
     /// <summary>
     /// Unregister action with given function
     /// </summary>
-    /// <param name="callback">The function that is going to get unregistered.</param>
-    public void UnregisterTileTypeChangedCallback(Action<Tile> callback)
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void UnregisterTileTypeChangedCallback(Action<Tile> callbackFunction)
     {
-        cbTileTypeChanged -= callback;
+        cb_TileTypeChanged -= callbackFunction;
+    }
+
+    /// <summary>
+    /// Place an InstalledObject on a Tile, if possible
+    /// </summary>
+    /// <param name="installedObject">The installedObject to place</param>
+    /// <returns>Success</returns>
+    public bool PlaceInstalledObject(InstalledObject installedObject)
+    {
+        // Uninstall installedObject
+        if (installedObject == null)
+        {
+            this.installedObject = null;
+            return true;
+        }
+
+        // Check if there is room to place an installedObject
+        if (this.installedObject != null)
+        {
+            Debug.LogError("Trying to place installedObject to a tile that already has one!");
+            return false;
+        }
+
+        this.installedObject = installedObject;
+        return true;
     }
 }
