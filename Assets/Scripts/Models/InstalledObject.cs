@@ -29,6 +29,8 @@ public class InstalledObject {
     int width;
     int height;
 
+    public bool IsLinkedToNeighbour { get; protected set; }
+
     // Callback action for changing something on or with InstalledObject
     Action<InstalledObject> cb_OnChanged;
 
@@ -46,14 +48,15 @@ public class InstalledObject {
     /// <param name="width">Actual width of the object. (visually might be smaller)</param>
     /// <param name="height">Actual height of the object. (visually might be smaller)</param>
     /// <returns>A 'baseObject' of InstalledObject</returns>
-    static public InstalledObject CreateBaseObject(string objectType, float movementCost = 1f, int width = 1, int height = 1)
+    static public InstalledObject CreateBaseObject(string objectType, float movementCost = 1f, int width = 1, int height = 1, bool isLinkedToNeighbour = false)
     {
         InstalledObject installedObject = new InstalledObject
         {
             ObjectType = objectType,
             movementCost = movementCost,
             width = width,
-            height = height
+            height = height,
+            IsLinkedToNeighbour = isLinkedToNeighbour
         };
 
         return installedObject;
@@ -73,6 +76,7 @@ public class InstalledObject {
             movementCost = baseObject.movementCost,
             width = baseObject.width,
             height = baseObject.height,
+            IsLinkedToNeighbour = baseObject.IsLinkedToNeighbour,
             Tile = tile
         };
 
@@ -82,7 +86,50 @@ public class InstalledObject {
         if (tile.PlaceInstalledObject(installedObject) == false)
             return null;
 
+        // TODO: Can this code get cleaner? Simular bit of code in 'GetSpriteForInstalledObject' in WorldController
+        // This installedObject is links itself to neighbours
+        // Tell other neighbouring InstalledObject of the same type to change/update
+        // Triggering it's OnChangeCallbackFunction
+        if (installedObject.IsLinkedToNeighbour)
+        {
+            Tile tileToCheck;
+            int x = tile.X;
+            int y = tile.Y;
+
+            // Check North
+            tileToCheck = tile.World.GetTileAt(x, (y + 1));
+            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+                tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject); 
+
+            // Check East
+            tileToCheck = tile.World.GetTileAt((x + 1), y);
+            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+                tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
+
+            // Check South
+            tileToCheck = tile.World.GetTileAt(x, (y - 1));
+            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+                tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
+
+            // Check West
+            tileToCheck = tile.World.GetTileAt((x - 1), y);
+            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+                tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
+        }
+
         return installedObject;
+    }
+
+    /// <summary>
+    /// Sub function, to make code little cleaner.
+    /// Check if: there are neighbouring tiles, if those tiles have installedObject on them & if those objects are of the same type.
+    /// </summary>
+    /// <param name="tile">Tile to check.</param>
+    /// <param name="installedObject">InstalledObject to compare with.</param>
+    /// <returns>True or false</returns>
+    private bool TileCheck(Tile tile, InstalledObject installedObject)
+    {
+        return (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType);
     }
 
     /// <summary>

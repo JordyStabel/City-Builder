@@ -6,7 +6,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 public class WorldController : MonoBehaviour {
 
@@ -16,12 +15,13 @@ public class WorldController : MonoBehaviour {
     // Bind data to a GameObject
     Dictionary<Tile, GameObject> tileGameObjectMap;
     Dictionary<InstalledObject, GameObject> installedObjectGameObjectMap;
+    Dictionary<string, Sprite> installedObjectSpritesMap;
 
     [Header("Floor tile sprite")]
     public Sprite floorSprite;
 
-    [Header("Wall sprite")]
-    public Sprite wallSprite;
+    // Sprites array
+    Sprite[] sprites;
 
     // The world, holds all tile data
     public World World { get; protected set; }
@@ -46,6 +46,9 @@ public class WorldController : MonoBehaviour {
         // Instatiate dictionary that binds a GameObject with data 
         tileGameObjectMap = new Dictionary<Tile, GameObject>();
         installedObjectGameObjectMap = new Dictionary<InstalledObject, GameObject>();
+        installedObjectSpritesMap = new Dictionary<string, Sprite>();
+
+        LoadSprites();
 
         // Create a GameObject for each tile
         for (int x = 0; x < World.Width; x++)
@@ -78,6 +81,20 @@ public class WorldController : MonoBehaviour {
         // Randomize all tiles in the world this was just created (thus calling the 'OnTileTypeChanged' function for each tile)
         World.RandomizeTiles();
 	}
+
+    /// <summary>
+    /// Load sprite from resources folder
+    /// </summary>
+    private void LoadSprites()
+    {
+        // Loading all sprites and adding them to the dictionary
+        sprites = Resources.LoadAll<Sprite>("Sprites/Walls");
+        foreach (Sprite sprite in sprites)
+        {
+            Debug.Log(sprite);
+            installedObjectSpritesMap[sprite.name] = sprite;
+        }
+    }
 
     #region CURRENTLY NOT IN USE - Unbind pairs in dictionary
     /// <summary>
@@ -171,19 +188,91 @@ public class WorldController : MonoBehaviour {
         installedObject_GameObject.transform.SetParent(this.transform, true);
         
         SpriteRenderer spriteRenderer = installedObject_GameObject.AddComponent(typeof(SpriteRenderer)) as SpriteRenderer;
-        spriteRenderer.sprite = wallSprite;
+        spriteRenderer.sprite = GetSpriteForInstalledObject(installedObject);
         spriteRenderer.sortingLayerName = "TileUI";
 
         // Register action, which will run the funtion when 'tile' gets changed
-        installedObject.RegisterOnChangedCallback(OnInstalledObjectCreated);
+        installedObject.RegisterOnChangedCallback(OnInstalledObjectChanged);
+    }
+
+    /// <summary>
+    /// Return the correct sprite for a given installedObject
+    /// </summary>
+    /// <param name="installedObject">The installedObject that needs a sprite.</param>
+    /// <returns>Sprite</returns>
+    private Sprite GetSpriteForInstalledObject(InstalledObject installedObject)
+    {
+        // Return sprite with the same name as installedObject.ObjectType
+        if (installedObject.IsLinkedToNeighbour == false)
+        {
+            return installedObjectSpritesMap[installedObject.ObjectType];
+        }
+
+        string spriteName = installedObject.ObjectType + "_";
+
+        /* Check for neighbours: North, East, South & West (in that order)
+         * Check if: there are neighbouring tiles, 
+         * if those tiles have installedObject on them 
+         * if those objects are of the same type. */
+        Tile tile;
+        int x = installedObject.Tile.X;
+        int y = installedObject.Tile.Y;
+
+        // Check North
+        tile = World.GetTileAt(x, (y + 1));
+        if (TileCheck(tile, installedObject))
+            spriteName += "N";
+
+        // Check East
+        tile = World.GetTileAt((x + 1), y);
+        if (TileCheck(tile, installedObject))
+            spriteName += "E";
+
+        // Check South
+        tile = World.GetTileAt(x, (y - 1));
+        if (TileCheck(tile, installedObject))
+            spriteName += "S";
+
+        // Check West
+        tile = World.GetTileAt((x - 1), y);
+        if (TileCheck(tile, installedObject))
+            spriteName += "W";
+
+        // If there isn't a sprite with this current spritename, throw error and return null
+        if (installedObjectSpritesMap.ContainsKey(spriteName) == false)
+        {
+            Debug.LogError("installedObjectSpritesMap doesn't contain a sprite with the name: " + spriteName);
+            return null;
+        }
+
+        return installedObjectSpritesMap[spriteName];
+    }
+
+    /// <summary>
+    /// Sub function, to make code little cleaner.
+    /// Check if: there are neighbouring tiles, if those tiles have installedObject on them & if those objects are of the same type.
+    /// </summary>
+    /// <param name="tile">Tile to check.</param>
+    /// <param name="installedObject">InstalledObject to compare with.</param>
+    /// <returns>True or false</returns>
+    public bool TileCheck(Tile tile, InstalledObject installedObject)
+    {
+        return (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType);
     }
 
     /// <summary>
     /// Function that needs to run after changing an InstalledObject.
     /// </summary>
     /// <param name="installedObject">InstalledObject</param>
-    void OnInstalledObjectChanged(InstalledObject installedObject)
+    private void OnInstalledObjectChanged(InstalledObject installedObject)
     {
-        Debug.LogError("OnInstalledObjectChanged -- Not implemented!");
+        if (installedObjectGameObjectMap.ContainsKey(installedObject) == false)
+        {
+            Debug.LogError("OnInstalledObjectChanged -- Trying to change visuals for InstalledObject not in dictionary!");
+            return;
+        }
+
+        GameObject installedObject_GameObject = installedObjectGameObjectMap[installedObject];
+        installedObject_GameObject.GetComponent<SpriteRenderer>().sprite = GetSpriteForInstalledObject(installedObject);
     }
 }

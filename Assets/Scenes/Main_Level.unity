@@ -1191,4 +1191,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   floorSprite: {fileID: 21300000, guid: 8c8320cd0da938d4683065a47d79c84e, type: 3}
-  wallSprite: {fileID: 21300000, guid: 54ed3a3d052b8c8408c98dcc2c8c28bb, type: 3}

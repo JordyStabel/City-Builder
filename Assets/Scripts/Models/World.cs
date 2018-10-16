@@ -60,7 +60,13 @@ public class World {
     void CreateBaseInstalledObjects()
     {
         // Create and add baseInstalledObject to the dictionary
-        installedBaseObjects.Add("Wall", InstalledObject.CreateBaseObject("Wall", 0));
+        installedBaseObjects.Add("Wall", InstalledObject.CreateBaseObject(
+            "Wall",     // InstalledObject ID (type)
+            0,          // Movementcost: 0 = imappable, default = 1
+            1,          // Width, default = 1
+            1,          // Height, default = 1
+            true        // Links to neighbours and 'forms' one large object, default = false
+            ));
     }
 
     /// <summary>

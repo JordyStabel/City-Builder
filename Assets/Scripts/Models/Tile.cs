@@ -27,10 +27,10 @@ public class Tile {
     LooseObject looseObject;
 
     // InstalledObject: wall, door, etc.
-    InstalledObject installedObject;
+    public InstalledObject InstalledObject { get; protected set; }
 
-    // Data a Tile needs have access to
-    World world;
+    // Properties a Tile (and other classes/objects) need to have access to
+    public World World { get; protected set; }
     public int X { get; protected set; }
     public int Y { get; protected set; }
 
@@ -45,7 +45,7 @@ public class Tile {
     /// <param name="y">The y coordinate.</param>
     public Tile(World world, int x, int y)
     {
-        this.world = world;
+        World = world;
         X = x;
         Y = y;
     }
@@ -78,18 +78,18 @@ public class Tile {
         // Uninstall installedObject
         if (installedObject == null)
         {
-            this.installedObject = null;
+            InstalledObject = null;
             return true;
         }
 
         // Check if there is room to place an installedObject
-        if (this.installedObject != null)
+        if (InstalledObject != null)
         {
             Debug.LogError("Trying to place installedObject to a tile that already has one!");
             return false;
         }
 
-        this.installedObject = installedObject;
+        InstalledObject = installedObject;
         return true;
     }
 }
