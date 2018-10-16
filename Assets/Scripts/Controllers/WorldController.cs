@@ -31,8 +31,9 @@ public class WorldController : MonoBehaviour {
 
     /// <summary>
     /// Create new world
+    /// OnEnable instead of start, so it runs first (before any start/update function)
     /// </summary>
-    void Start () {
+    void OnEnable () {
 
         // Setting the instance equal to this current one (with check)
         if (Instance != null)
@@ -75,16 +76,16 @@ public class WorldController : MonoBehaviour {
 
                 // Add SpriteRenderer and default empty sprite to each tile_gameObject
                 tile_GameObject.AddComponent<SpriteRenderer>().sprite = emptySprite;
-
-                // Register action, which will run the funtion when 'tile' gets changed
-                tile_Data.RegisterTileTypeChangedCallback(OnTileTypeChanged);
             }
         }
+
+        // Register action, which will run the funtion when tile_data gets changed
+        World.RegisterTileChanged(OnTileChanged);
 
         // Center camera in the world
         Camera.main.transform.position = new Vector3(World.Width / 2, World.Height / 2, Camera.main.transform.position.z);
 
-        // Randomize all tiles in the world this was just created (thus calling the 'OnTileTypeChanged' function for each tile)
+        // Randomize all tiles in the world this was just created (thus calling the 'OnTileChanged' function for each tile)
         //World.RandomizeTiles();
 	}
 
@@ -117,7 +118,7 @@ public class WorldController : MonoBehaviour {
             // Unpair tile_Data and tile_GameObject from dictionary, thus shrinking the dictionary
             tileGameObjectMap.Remove(tile_Data);
 
-            tile_Data.UnregisterTileTypeChangedCallback(OnTileTypeChanged);
+            tile_Data.UnregisterTileTypeChangedCallback(OnTileChanged);
             Destroy(tile_GameObject);
         }
 
@@ -130,7 +131,7 @@ public class WorldController : MonoBehaviour {
     /// </summary>
     /// <param name="tile_Data">The Tile</param>
     /// <param name="tile_GameObject">The GameObject of the Tile</param>
-    void OnTileTypeChanged(Tile tile_Data)
+    void OnTileChanged(Tile tile_Data)
     {
         // Check if tileGameObjectMap actually contains the tile_Data key
         if (!tileGameObjectMap.ContainsKey(tile_Data))

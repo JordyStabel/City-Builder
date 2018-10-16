@@ -21,8 +21,9 @@ public class World {
     // Number of tiles as height in the world
     public int Height { get; protected set; }
 
-    // Callback action for creating installedObject
+    // Callback action for creating installedObject and changing tile
     Action<InstalledObject> cb_InstalledObjectCreated;
+    Action<Tile> cb_TileChanged;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="World"/> class.
@@ -45,6 +46,7 @@ public class World {
             for (int y = 0; y < height; y++)
             {
                 tiles[x, y] = new Tile(this, x, y);
+                tiles[x, y].RegisterTileTypeChangedCallback(OnTileChanged);
             }
         }
         Debug.Log("World created with: " + width * height + " tiles (width: " + width + ", height: " + height );
@@ -136,6 +138,19 @@ public class World {
     }
 
     /// <summary>
+    /// Gets called when tile changes/updates, triggers callback actions.
+    /// </summary>
+    /// <param name="tile">Tile to change/update.</param>
+    void OnTileChanged(Tile tile)
+    {
+        // Return if there are no registered functions
+        if (cb_TileChanged == null)
+            return;
+
+        cb_TileChanged(tile);
+    }
+
+    /// <summary>
     /// Unregister action with given function
     /// </summary>
     /// <param name="callbackFunction">The function that is going to get unregistered.</param>
@@ -151,5 +166,23 @@ public class World {
     public void UnregisterInstalledObjectCreated(Action<InstalledObject> callbackFunction)
     {
         cb_InstalledObjectCreated -= callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void RegisterTileChanged(Action<Tile> callbackFunction)
+    {
+        cb_TileChanged += callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void UnregisterTileChanged(Action<Tile> callbackFunction)
+    {
+        cb_TileChanged -= callbackFunction;
     }
 }

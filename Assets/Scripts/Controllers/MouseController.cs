@@ -19,6 +19,12 @@ public class MouseController : MonoBehaviour {
     [Tooltip("Default: 1, higher = faster")]
     public float zoomSpeed = 1f;
 
+    [Header("General settings")]
+    [Tooltip("Default: 2, higher = less maximal zoom")]
+    float maxZoomIn = 2f;
+    [Tooltip("Default: 20, higher = more maximal zoom")]
+    float maxZoomOut = 20f;
+
     bool buildModeIsObjects = false;
     TileType buildModeTileType = TileType.Floor;
     string buildModeObjectType;
@@ -200,7 +206,7 @@ public class MouseController : MonoBehaviour {
         Camera.main.orthographicSize -= Camera.main.orthographicSize * Input.GetAxis("Mouse ScrollWheel") * zoomSpeed;
 
         // Limit the max zoom in and out
-        Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, 2.5f, 30f);
+        Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, maxZoomIn, maxZoomOut);
     }
 
     public void SetMode_BuildFloor()
