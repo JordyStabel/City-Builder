@@ -44,3 +44,9 @@ TagManager:
   - name: TileUI
     uniqueID: 3361431649
     locked: 0
+  - name: Jobs
+    uniqueID: 3452387237
+    locked: 0
+  - name: Characters
+    uniqueID: 2918355305
+    locked: 0

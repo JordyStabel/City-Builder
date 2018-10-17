@@ -108,22 +108,22 @@ public class InstalledObject {
 
             // Check North
             tileToCheck = tile.World.GetTileAt(x, (y + 1));
-            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject); 
 
             // Check East
             tileToCheck = tile.World.GetTileAt((x + 1), y);
-            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
 
             // Check South
             tileToCheck = tile.World.GetTileAt(x, (y - 1));
-            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
 
             // Check West
             tileToCheck = tile.World.GetTileAt((x - 1), y);
-            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
         }
 

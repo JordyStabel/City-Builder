@@ -12,6 +12,9 @@ public class World {
     // A 2D array that holds the tile data.
     Tile[,] tiles;
 
+    // List of all characters in the world
+    List<Character> characters;
+
     // Bind ObjectType to a InstalledObject
     Dictionary<string, InstalledObject> installedBaseObjects;
 
@@ -24,9 +27,9 @@ public class World {
     // Callback action for creating installedObject and changing tile
     Action<InstalledObject> cb_InstalledObjectCreated;
     Action<Tile> cb_TileChanged;
+    Action<Character> cb_CharacterCreated;
 
-    // Holds all queued jobs
-    public Queue<Job> jobQueue;
+    public JobQueue jobQueue;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="World"/> class.
@@ -36,7 +39,8 @@ public class World {
     /// <param name="height">Height in number of tiles</param>
     public World (int width = 100, int height = 100)
     {
-        jobQueue = new Queue<Job>();
+        jobQueue = new JobQueue();
+        characters = new List<Character>();
 
         // Set width & height
         Width = width;
@@ -54,11 +58,38 @@ public class World {
                 tiles[x, y].RegisterTileTypeChangedCallback(OnTileChanged);
             }
         }
-        Debug.Log("World created with: " + width * height + " tiles (width: " + width + ", height: " + height );
+        Debug.Log("World created with: " + width * height + " tiles -- width: " + width + ", height: " + height );
 
         // Create new dictionary of baseInstalledObjects
         installedBaseObjects = new Dictionary<string, InstalledObject>();
         CreateBaseInstalledObjects();
+    }
+
+    /// <summary>
+    /// Update function for the world. Needs a delta time from somewhere else.
+    /// </summary>
+    /// <param name="deltaTime">The amount of time passed since last update. Higher = faster.</param>
+    public void UpdateWorld(float deltaTime)
+    {
+        // Update each character in the list
+        foreach (Character character in characters)
+            character.UpdateCharacter(deltaTime);
+    }
+
+    /// <summary>
+    /// Create a new character
+    /// </summary>
+    /// <param name="tile">Tile that the character will get spawned on.</param>
+    public Character CreateCharacter(Tile tile)
+    {
+        // Spawn character in center of the world
+        Character character = new Character(tile);
+        characters.Add(character);
+
+        if (cb_CharacterCreated != null)
+            cb_CharacterCreated(character);
+
+        return character;
     }
 
     /// <summary>
@@ -166,6 +197,23 @@ public class World {
         return installedBaseObjects[installedObjectType].IsValidPosition(tile);
     }
 
+    /// <summary>
+    /// Ask for a baseInstalledObject from dictionary
+    /// </summary>
+    /// <param name="installedObjectType">Key for object</param>
+    /// <returns>baseInstalledObject</returns>
+    public InstalledObject GetInstalledBaseObject(string installedObjectType)
+    {
+        // Check if dictionary contains something with the given key
+        if (installedBaseObjects.ContainsKey(installedObjectType) == false)
+        {
+            Debug.LogError("No InstalledObject with type: " + installedObjectType);
+            return null;
+        }
+            
+        return installedBaseObjects[installedObjectType];
+    }
+
     #region (Un)Register callback(s)
     /// <summary>
     /// Unregister action with given function
@@ -183,6 +231,24 @@ public class World {
     public void UnregisterInstalledObjectCreated(Action<InstalledObject> callbackFunction)
     {
         cb_InstalledObjectCreated -= callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void RegisterCharacterCreatedCallback(Action<Character> callbackFunction)
+    {
+        cb_CharacterCreated += callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void UnregisterCharacterCreatedCallback(Action<Character> callbackFunction)
+    {
+        cb_CharacterCreated -= callbackFunction;
     }
 
     /// <summary>

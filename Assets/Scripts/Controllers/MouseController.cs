@@ -25,10 +25,6 @@ public class MouseController : MonoBehaviour {
     [Tooltip("Default: 20, higher = more maximal zoom")]
     float maxZoomOut = 20f;
 
-    bool buildModeIsObjects = false;
-    TileType buildModeTileType = TileType.Floor;
-    string buildModeObjectType;
-
     // The world position of the mouse
     Vector2 currentFrameMousePosition;
     Vector2 lastFrameMousePosition;
@@ -39,13 +35,15 @@ public class MouseController : MonoBehaviour {
     // Create list that holds the 'placement preview objects'
     List<GameObject> dragPreviewGameObjects;
 
-    // Instance of ObjectPooler
+    // Instance of ObjectPooler & BuildModeController
     ObjectPooler objectPooler;
+    BuildModeController buildModeController;
 
     void Start()
     {
         dragPreviewGameObjects = new List<GameObject>();
         objectPooler = ObjectPooler.Instance;
+        buildModeController = BuildModeController.Instance; ;
     }
 
     void Update () {
@@ -157,40 +155,7 @@ public class MouseController : MonoBehaviour {
                 {
                     Tile tile = WorldController.Instance.World.GetTileAt(x, y);
                     if (tile != null)
-                    {
-                        if (buildModeIsObjects)
-                        {
-                            // Building Objects
-
-                            // FIXME: This instantly builds installedObjects
-                            //WorldController.Instance.World.PlaceInstalledObject(buildModeObjectType, tile);
-
-                            string installedObjectType = buildModeObjectType;
-
-                            // Can we build installedObjects in the seleceted tile? Run validation function
-                            if (WorldController.Instance.World.IsInstalledObjectPlacementValid(installedObjectType, tile) && tile.pendingInstalledObjectJob == null)
-                            {
-                                // Create new job, with Lambda function with it
-                                Job job = new Job(tile, (theJob) => {
-                                    WorldController.Instance.World.PlaceInstalledObject(installedObjectType, tile);
-                                    tile.pendingInstalledObjectJob = null;
-                                });
-
-                                // Placing the new job in the jobQueue
-                                WorldController.Instance.World.jobQueue.Enqueue(job);
-
-                                // Assigning tile with the new job
-                                tile.pendingInstalledObjectJob = job;
-
-                                // Remove job from tile when job gets canceled
-                                job.RegisterJobCancelCallback((theJob) => { tile.pendingInstalledObjectJob = null; });
-                            }
-                        }
-                        else
-                        {
-                            tile.Type = buildModeTileType;
-                        }
-                    }
+                        buildModeController.ExecuteBuild(tile);
                 }
             }
 
@@ -228,28 +193,5 @@ public class MouseController : MonoBehaviour {
 
         // Limit the max zoom in and out
         Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, maxZoomIn, maxZoomOut);
-    }
-
-    public void SetMode_BuildFloor()
-    {
-        buildModeIsObjects = false;
-        buildModeTileType = TileType.Floor;
-    }
-
-    public void SetMode_Destroy()
-    {
-        buildModeIsObjects = false;
-        buildModeTileType = TileType.Empty;
-    }
-
-    /// <summary>
-    /// Set the build-mode and object-type
-    /// </summary>
-    /// <param name="objectType">The objectType the player wants to use</param>
-    public void SetMode_BuildInstalledObject(string objectType)
-    {
-        // A wall isn't a Tile type. Wall is an "InstalledObject" that exists on top of a Tile.
-        buildModeIsObjects = true;
-        buildModeObjectType = objectType;
     }
 }

@@ -78,6 +78,32 @@ public class Tile {
         return true;
     }
 
+    /// <summary>
+    /// Check if two tiles are adjacent to each other.
+    /// </summary>
+    /// <param name="tile">Tile to check.</param>
+    /// <returns>true if it's a neighbour, false if not.</returns>
+    public bool IsAdjacent(Tile tile, bool diagonalAllowed = false)
+    {
+        if (X == tile.X && (Y == tile.Y + 1 || Y == tile.Y - 1))
+            return true;
+
+        if (Y == tile.Y && (X == tile.X + 1 || X == tile.X - 1))
+            return true;
+
+        // Extra check for diagonal movement
+        if (diagonalAllowed)
+        {
+            if (X == tile.X + 1 && (Y == tile.Y + 1 || Y == tile.Y - 1))
+                return true;
+
+            if (X == tile.X - 1 && (Y == tile.Y + 1 || Y == tile.Y - 1))
+                return true;
+        }
+
+        return false;
+    }
+
     #region (Un)Register callback(s)
     /// <summary>
     /// Register action with given function

@@ -37,6 +37,11 @@ public class WorldController : MonoBehaviour {
         //World.RandomizeTiles();
 	}
 
+    void Update()
+    {
+        World.UpdateWorld(Time.deltaTime);
+    }
+
     /// <summary>
     /// Check which tile the mouse hovers over and then return that tile
     /// </summary>

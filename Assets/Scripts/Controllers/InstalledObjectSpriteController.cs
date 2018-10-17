@@ -19,7 +19,16 @@ public class InstalledObjectSpriteController : MonoBehaviour {
     // Get reference to the World
     World World { get { return WorldController.Instance.World; } }
 
+    // Creating an instance of 'WorldController' which is accessible from all classes
+    public static InstalledObjectSpriteController Instance { get; protected set; }
+
     void Start () {
+
+        // Setting the instance equal to this current one (with check)
+        if (Instance != null)
+            Debug.LogError("There shouldn't be two world controllers.");
+        else
+            Instance = this;
 
         // Instatiate dictionary that binds a GameObject with data
         installedObjectGameObjectMap = new Dictionary<InstalledObject, GameObject>();
@@ -61,7 +70,7 @@ public class InstalledObjectSpriteController : MonoBehaviour {
         // Setting the new tile as a child, maintaining a clean hierarchy
         installedObject_GameObject.transform.SetParent(this.transform, true);
         
-        SpriteRenderer spriteRenderer = installedObject_GameObject.AddComponent(typeof(SpriteRenderer)) as SpriteRenderer;
+        SpriteRenderer spriteRenderer = installedObject_GameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = GetSpriteForInstalledObject(installedObject);
         spriteRenderer.sortingLayerName = "TileUI";
 
@@ -74,7 +83,7 @@ public class InstalledObjectSpriteController : MonoBehaviour {
     /// </summary>
     /// <param name="installedObject">The installedObject that needs a sprite.</param>
     /// <returns>Sprite</returns>
-    private Sprite GetSpriteForInstalledObject(InstalledObject installedObject)
+    public Sprite GetSpriteForInstalledObject(InstalledObject installedObject)
     {
         // Return sprite with the same name as installedObject.ObjectType
         if (installedObject.IsLinkedToNeighbour == false)
@@ -120,6 +129,20 @@ public class InstalledObjectSpriteController : MonoBehaviour {
         }
 
         return installedObjectSpritesMap[spriteName];
+    }
+
+
+    public Sprite GetSpriteForInstalledObject(string installedObjectType)
+    {
+        if (installedObjectSpritesMap.ContainsKey(installedObjectType))
+            return installedObjectSpritesMap[installedObjectType];
+
+        // Needed for walls (and maybe in the future other objects) because of the naming of walls
+        if (installedObjectSpritesMap.ContainsKey(installedObjectType + "_"))
+            return installedObjectSpritesMap[installedObjectType + "_"];
+
+        Debug.LogError("installedObjectSpritesMap doesn't contain a sprite with the name: " + installedObjectType);
+        return null;
     }
 
     /// <summary>

@@ -11,8 +11,11 @@ public class Job {
        placing wall, buidlings, machines, moving resources, work, etc. */
     
     // The tile the job 'sits' on and the time it will take to complete the job.
-    Tile tile;
+    public Tile Tile { get; protected set; }
     float jobTime = 1f;
+
+    // What type of job is this...
+    public string JobObjectType { get; protected set; }
 
     // Actions for completing a job and canceling a job.
     Action<Job> cb_JobComplete;
@@ -24,9 +27,10 @@ public class Job {
     /// <param name="tile">Tile to place job on.</param>
     /// <param name="cb_JobComplete">Function to call after job completes.</param>
     /// <param name="jobTime">How long does this job take.</param>
-    public Job(Tile tile, Action<Job> cb_JobComplete, float jobTime = 1f)
+    public Job(Tile tile, string jobObjectType, Action<Job> cb_JobComplete, float jobTime = 1f)
     {
-        this.tile = tile;
+        Tile = tile;
+        JobObjectType = jobObjectType;
         this.cb_JobComplete = cb_JobComplete;
         this.jobTime = jobTime;
     }
@@ -43,7 +47,9 @@ public class Job {
         {
             // If there is a JobComplete callback, call it
             if (cb_JobComplete != null)
+            {
                 cb_JobComplete(this);
+            }
         }
     }
 
