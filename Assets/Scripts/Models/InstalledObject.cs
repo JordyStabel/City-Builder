@@ -23,7 +23,7 @@ public class InstalledObject {
 
     SPECIAL: If movementCost = 0, then this tile is impassable. (e.g. walls, buildings, large machines)
     */ 
-    float movementCost;
+    public float MovementCost { get; protected set; }
     
     // A machine might be 3x2, but the graphic is only 3x1, the extra space is for walking/driving
     int width;
@@ -55,7 +55,7 @@ public class InstalledObject {
         InstalledObject installedObject = new InstalledObject
         {
             ObjectType = objectType,
-            movementCost = movementCost,
+            MovementCost = movementCost,
             width = width,
             height = height,
             IsLinkedToNeighbour = isLinkedToNeighbour
@@ -83,7 +83,7 @@ public class InstalledObject {
         InstalledObject installedObject = new InstalledObject
         {
             ObjectType = baseObject.ObjectType,
-            movementCost = baseObject.movementCost,
+            MovementCost = baseObject.MovementCost,
             width = baseObject.width,
             height = baseObject.height,
             IsLinkedToNeighbour = baseObject.IsLinkedToNeighbour,

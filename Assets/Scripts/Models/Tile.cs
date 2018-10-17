@@ -36,6 +36,17 @@ public class Tile {
     public World World { get; protected set; }
     public int X { get; protected set; }
     public int Y { get; protected set; }
+    public float MovementCost {
+        get {
+
+            if (Type == TileType.Empty)
+                return 0;
+
+            if (InstalledObject == null)
+                return 1;
+
+            return InstalledObject.MovementCost;
+        } }
 
     // Callback action for changing tile type
     Action<Tile> cb_TileTypeChanged;
@@ -80,28 +91,73 @@ public class Tile {
 
     /// <summary>
     /// Check if two tiles are adjacent to each other.
+    /// Check to if the differenc between two tiles is 1.
+    /// If so, they're either vertical or horizontal neighbour.
+    /// Diagonal, same thing but moved 1 to left and 1 to right.
+    /// Then check again. Only if diagonalAllowed == true
     /// </summary>
     /// <param name="tile">Tile to check.</param>
     /// <returns>true if it's a neighbour, false if not.</returns>
     public bool IsAdjacent(Tile tile, bool diagonalAllowed = false)
     {
-        if (X == tile.X && (Y == tile.Y + 1 || Y == tile.Y - 1))
-            return true;
+        return Mathf.Abs(X - tile.X) + Math.Abs(Y - tile.Y) == 1 || 
+            (diagonalAllowed && (Mathf.Abs(X - tile.X) == 1 && (Mathf.Abs(Y - tile.Y) == 1)));
+    }
 
-        if (Y == tile.Y && (X == tile.X + 1 || X == tile.X - 1))
-            return true;
+    /// <summary>
+    /// Get all the neighbouring tiles of a given tile.
+    /// Also get the diagonal neighbours if needed.
+    /// </summary>
+    /// <param name="diagonalAllowed">Also need the diagonal neighbours.</param>
+    /// <returns>All the neighbouring tiles.</returns>
+    public Tile[] GetNeighbours(bool diagonalAllowed = false)
+    {
+        Tile[] neighbouringTiles;
 
-        // Extra check for diagonal movement
-        if (diagonalAllowed)
+        if (diagonalAllowed == false)
+            neighbouringTiles = new Tile[4];    // Tile order: N E S W
+        else
+            neighbouringTiles = new Tile[8];    // Tilde order: N E S W NE SE SW NW
+
+        Tile neighbouringTile;
+
+        // Can return nulls, but that's fine. It's fine
+        // North
+        neighbouringTile = World.GetTileAt(X, Y + 1);
+        neighbouringTiles[0] = neighbouringTile;
+
+        // East
+        neighbouringTile = World.GetTileAt(X + 1, Y);
+        neighbouringTiles[1] = neighbouringTile;
+
+        // South
+        neighbouringTile = World.GetTileAt(X, Y - 1);
+        neighbouringTiles[2] = neighbouringTile;
+
+        // West
+        neighbouringTile = World.GetTileAt(X - 1, Y);
+        neighbouringTiles[3] = neighbouringTile;
+
+        if (diagonalAllowed == true)
         {
-            if (X == tile.X + 1 && (Y == tile.Y + 1 || Y == tile.Y - 1))
-                return true;
+            // North-East
+            neighbouringTile = World.GetTileAt(X + 1, Y + 1);
+            neighbouringTiles[4] = neighbouringTile;
 
-            if (X == tile.X - 1 && (Y == tile.Y + 1 || Y == tile.Y - 1))
-                return true;
+            // South-East
+            neighbouringTile = World.GetTileAt(X + 1, Y - 1);
+            neighbouringTiles[5] = neighbouringTile;
+
+            // South-West
+            neighbouringTile = World.GetTileAt(X - 1, Y - 1);
+            neighbouringTiles[6] = neighbouringTile;
+
+            // Norh-West
+            neighbouringTile = World.GetTileAt(X - 1, Y + 1);
+            neighbouringTiles[7] = neighbouringTile;
         }
 
-        return false;
+        return neighbouringTiles; ;
     }
 
     #region (Un)Register callback(s)

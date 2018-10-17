@@ -15,6 +15,9 @@ public class World {
     // List of all characters in the world
     List<Character> characters;
 
+    // The pathfinding graph used to navigate the world
+    Path_TileGraph path_TileGraph;
+
     // Bind ObjectType to a InstalledObject
     Dictionary<string, InstalledObject> installedBaseObjects;
 
@@ -123,6 +126,36 @@ public class World {
     }
 
     /// <summary>
+    /// Quick debug function, generate pre-made map with installedObjects and floors
+    /// </summary>
+    public void SetupPathfindingExample()
+    {
+        Debug.Log("SetupPathfindingExample");
+
+        // Make a set of floors/walls to test pathfinding with.
+
+        int l = Width / 2 - 5;
+        int b = Height / 2 - 5;
+
+        for (int x = l - 5; x < l + 15; x++)
+        {
+            for (int y = b - 5; y < b + 15; y++)
+            {
+                tiles[x, y].Type = TileType.Floor;
+
+
+                if (x == l || x == (l + 9) || y == b || y == (b + 9))
+                {
+                    if (x != (l + 9) && y != (b + 4))
+                    {
+                        PlaceInstalledObject("Wall", tiles[x, y]);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Test function, randomize tile type
     /// </summary>
     public void RandomizeTiles()
@@ -170,7 +203,10 @@ public class World {
 
         // If the callback action has registered function, call/execute them
         if (cb_InstalledObjectCreated != null)
+        {
             cb_InstalledObjectCreated(installedObject);
+            InvalidateTileGraph();
+        }
     }
 
     /// <summary>
@@ -184,6 +220,16 @@ public class World {
             return;
 
         cb_TileChanged(tile);
+
+        InvalidateTileGraph();
+    }
+
+    /// <summary>
+    /// Needs to get called whenever a change to the world means the old pathfinding info is no longer valid.
+    /// </summary>
+    public void InvalidateTileGraph()
+    {
+        path_TileGraph = null;
     }
 
     /// <summary>

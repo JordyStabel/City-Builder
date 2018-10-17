@@ -24,6 +24,16 @@ public class BuildModeController : MonoBehaviour{
     }
 
     /// <summary>
+    /// Quick debug function, generate small map with installedObjects and floors
+    /// </summary>
+    public void DoPathfindingTest()
+    {
+        WorldController.Instance.World.SetupPathfindingExample();
+
+        Path_TileGraph path_TileGraph = new Path_TileGraph(WorldController.Instance.World);
+    }
+
+    /// <summary>
     /// Set mode to 'build floor'
     /// </summary>
     public void SetMode_BuildFloor()
