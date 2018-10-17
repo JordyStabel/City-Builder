@@ -162,8 +162,29 @@ public class MouseController : MonoBehaviour {
                         {
                             // Building Objects
 
-                            // FIXME: Right now we can only build walls, nothing else
-                            WorldController.Instance.World.PlaceInstalledObject(buildModeObjectType, tile);
+                            // FIXME: This instantly builds installedObjects
+                            //WorldController.Instance.World.PlaceInstalledObject(buildModeObjectType, tile);
+
+                            string installedObjectType = buildModeObjectType;
+
+                            // Can we build installedObjects in the seleceted tile? Run validation function
+                            if (WorldController.Instance.World.IsInstalledObjectPlacementValid(installedObjectType, tile) && tile.pendingInstalledObjectJob == null)
+                            {
+                                // Create new job, with Lambda function with it
+                                Job job = new Job(tile, (theJob) => {
+                                    WorldController.Instance.World.PlaceInstalledObject(installedObjectType, tile);
+                                    tile.pendingInstalledObjectJob = null;
+                                });
+
+                                // Placing the new job in the jobQueue
+                                WorldController.Instance.World.jobQueue.Enqueue(job);
+
+                                // Assigning tile with the new job
+                                tile.pendingInstalledObjectJob = job;
+
+                                // Remove job from tile when job gets canceled
+                                job.RegisterJobCancelCallback((theJob) => { tile.pendingInstalledObjectJob = null; });
+                            }
                         }
                         else
                         {

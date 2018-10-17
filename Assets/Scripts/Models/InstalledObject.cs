@@ -63,7 +63,7 @@ public class InstalledObject {
         };
 
         // Add validation function
-        installedObject.funcPositionValidation = installedObject.IsValidPosition;
+        installedObject.funcPositionValidation = installedObject.__IsValidPosition;
 
         return installedObject;
     }
@@ -108,22 +108,22 @@ public class InstalledObject {
 
             // Check North
             tileToCheck = tile.World.GetTileAt(x, (y + 1));
-            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject); 
 
             // Check East
             tileToCheck = tile.World.GetTileAt((x + 1), y);
-            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
 
             // Check South
             tileToCheck = tile.World.GetTileAt(x, (y - 1));
-            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
 
             // Check West
             tileToCheck = tile.World.GetTileAt((x - 1), y);
-            if (WorldController.Instance.TileCheck(tileToCheck, installedObject))
+            if (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
         }
 
@@ -131,11 +131,21 @@ public class InstalledObject {
     }
 
     /// <summary>
+    /// Public function that checks if placement is valid
+    /// </summary>
+    /// <param name="tile">The tile to check</param>
+    /// <returns>isValid</returns>
+    public bool IsValidPosition(Tile tile)
+    {
+        return funcPositionValidation(tile);
+    }
+
+    /// <summary>
     /// Validate whether it's allowed to place an installedObject on a certain tile.
     /// </summary>
     /// <param name="tile">Tile the validate.</param>
     /// <returns>isValid</returns>
-    public bool IsValidPosition(Tile tile)
+    public bool __IsValidPosition(Tile tile)
     {
         // Make sure tile is of type Floor
         // Make sure tile doesn't already have installedObject
@@ -154,16 +164,17 @@ public class InstalledObject {
     /// </summary>
     /// <param name="tile">Tile the validate.</param>
     /// <returns>isValid</returns>
-    public bool IsValidPosition_Door(Tile tile)
+    public bool __IsValidPosition_Door(Tile tile)
     {
         // Run 'normal' validation first
-        if (IsValidPosition(tile) == false)
+        if (__IsValidPosition(tile) == false)
             return false;
 
         // Make sure there is either a NS or SW wall, to place the door in.
         return true;
     }
 
+    #region (Un)Register callback(s)
     /// <summary>
     /// Register action with given function
     /// </summary>
@@ -181,4 +192,5 @@ public class InstalledObject {
     {
         cb_OnChanged -= callbackFunction;
     }
+    #endregion
 }

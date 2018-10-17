@@ -25,6 +25,9 @@ public class World {
     Action<InstalledObject> cb_InstalledObjectCreated;
     Action<Tile> cb_TileChanged;
 
+    // Holds all queued jobs
+    public Queue<Job> jobQueue;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="World"/> class.
     /// Default: width = 100, height = 100
@@ -33,6 +36,8 @@ public class World {
     /// <param name="height">Height in number of tiles</param>
     public World (int width = 100, int height = 100)
     {
+        jobQueue = new Queue<Job>();
+
         // Set width & height
         Width = width;
         Height = height;
@@ -151,6 +156,18 @@ public class World {
     }
 
     /// <summary>
+    /// Validate if its allowed to place a installedObject on a certain tile
+    /// </summary>
+    /// <param name="installedObjectType">The objectType to validate.</param>
+    /// <param name="tile">The tile to validate.</param>
+    /// <returns>isValid</returns>
+    public bool IsInstalledObjectPlacementValid(string installedObjectType, Tile tile)
+    {
+        return installedBaseObjects[installedObjectType].IsValidPosition(tile);
+    }
+
+    #region (Un)Register callback(s)
+    /// <summary>
     /// Unregister action with given function
     /// </summary>
     /// <param name="callbackFunction">The function that is going to get unregistered.</param>
@@ -185,4 +202,5 @@ public class World {
     {
         cb_TileChanged -= callbackFunction;
     }
+    #endregion
 }

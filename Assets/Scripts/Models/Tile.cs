@@ -29,6 +29,9 @@ public class Tile {
     // InstalledObject: wall, door, etc.
     public InstalledObject InstalledObject { get; protected set; }
 
+    // Assign job to tile, prevent double jobs on a tile
+    public Job pendingInstalledObjectJob;
+
     // Properties a Tile (and other classes/objects) need to have access to
     public World World { get; protected set; }
     public int X { get; protected set; }
@@ -48,24 +51,6 @@ public class Tile {
         World = world;
         X = x;
         Y = y;
-    }
-
-    /// <summary>
-    /// Register action with given function
-    /// </summary>
-    /// <param name="callbackFunction">The function that is going to get registered.</param>
-    public void RegisterTileTypeChangedCallback(Action<Tile> callbackFunction)
-    {
-        cb_TileTypeChanged += callbackFunction;
-    }
-
-    /// <summary>
-    /// Unregister action with given function
-    /// </summary>
-    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
-    public void UnregisterTileTypeChangedCallback(Action<Tile> callbackFunction)
-    {
-        cb_TileTypeChanged -= callbackFunction;
     }
 
     /// <summary>
@@ -92,4 +77,24 @@ public class Tile {
         InstalledObject = installedObject;
         return true;
     }
+
+    #region (Un)Register callback(s)
+    /// <summary>
+    /// Register action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get registered.</param>
+    public void RegisterTileTypeChangedCallback(Action<Tile> callbackFunction)
+    {
+        cb_TileTypeChanged += callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void UnregisterTileTypeChangedCallback(Action<Tile> callbackFunction)
+    {
+        cb_TileTypeChanged -= callbackFunction;
+    }
+    #endregion
 }
