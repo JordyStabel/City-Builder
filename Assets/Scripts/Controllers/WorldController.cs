@@ -3,9 +3,9 @@
 //            https://github.com/JordyStabel/City-Builder
 //===================================================================
 
+using System.Xml.Serialization;
 using UnityEngine;
-using System.Collections.Generic;
-using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class WorldController : MonoBehaviour {
 
@@ -14,6 +14,9 @@ public class WorldController : MonoBehaviour {
 
     // The world, holds all tile data
     public World World { get; protected set; }
+
+    // static so that it doesn't get changed on re-loading a scene during run time
+    static bool loadWorld = false;
 
     /// <summary>
     /// Create new world
@@ -27,11 +30,18 @@ public class WorldController : MonoBehaviour {
         else
             Instance = this;
 
-        // Create new world with empty tiles
-        World = new World();
+        if (loadWorld)
+        {
+            CreateWorldFromSaveFile();
+            loadWorld = false;
+        }
+        else
+        {
+            CreateEmptyWorld();
+        }
 
-        // Center camera in the world
-        Camera.main.transform.position = new Vector3(World.Width / 2, World.Height / 2, Camera.main.transform.position.z);
+        // Create new world with empty tiles
+        CreateEmptyWorld();
 
         // Randomize all tiles in the world this was just created (thus calling the 'OnTileChanged' function for each tile)
         //World.RandomizeTiles();
@@ -54,5 +64,58 @@ public class WorldController : MonoBehaviour {
         int y = Mathf.FloorToInt(coordinates.y);
 
         return World.GetTileAt(x, y);
+    }
+
+    /// <summary>
+    /// Reload the currently loaded scene. Effectively creating a 'fresh' new world. But NOT saving the old one.
+    /// </summary>
+    public void NewWorld()
+    {
+        Debug.Log("New World button clicked.");
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+        // CreateEmptyWorld();
+    }
+
+    public void SaveWorld()
+    {
+        Debug.Log("Save World button clicked.");
+
+        XmlSerializer xmlSerializer = new XmlSerializer(typeof(World));
+    }
+
+    public void LoadWorld()
+    {
+        Debug.Log("Load World button clicked.");
+
+        loadWorld = true;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    /// <summary>
+    /// Create a new empty world
+    /// </summary>
+    void CreateEmptyWorld()
+    {
+        // Create new world with empty tiles
+        World = new World();
+
+        // Center camera in the world
+        Camera.main.transform.position = new Vector3(World.Width / 2, World.Height / 2, Camera.main.transform.position.z);
+    }
+
+    /// <summary>
+    /// Create a world with data from a save file 
+    /// </summary>
+    void CreateWorldFromSaveFile()
+    {
+        Debug.LogError("CreateWorldFromSaveFile");
+
+        // Create new world with empty tiles
+        World = new World();
+
+        // Center camera in the world
+        Camera.main.transform.position = new Vector3(World.Width / 2, World.Height / 2, Camera.main.transform.position.z);
     }
 }

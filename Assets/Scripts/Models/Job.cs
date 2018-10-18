@@ -27,7 +27,7 @@ public class Job {
     /// <param name="tile">Tile to place job on.</param>
     /// <param name="cb_JobComplete">Function to call after job completes.</param>
     /// <param name="jobTime">How long does this job take.</param>
-    public Job(Tile tile, string jobObjectType, Action<Job> cb_JobComplete, float jobTime = 1f)
+    public Job(Tile tile, string jobObjectType, Action<Job> cb_JobComplete, float jobTime = .1f)
     {
         Tile = tile;
         JobObjectType = jobObjectType;

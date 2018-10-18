@@ -26,7 +26,7 @@ public class Character {
     float movementProgression;
 
     // Tiles per second a character can move
-    float movementSpeed = 2f;
+    float movementSpeed = 5f;
 
     Action<Character> cb_CharacterChanged;
     Job currentJob;
