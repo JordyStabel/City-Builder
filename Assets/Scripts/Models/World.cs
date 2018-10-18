@@ -16,7 +16,7 @@ public class World {
     List<Character> characters;
 
     // The pathfinding graph used to navigate the world
-    Path_TileGraph path_TileGraph;
+    public Path_TileGraph path_TileGraph;
 
     // Bind ObjectType to a InstalledObject
     Dictionary<string, InstalledObject> installedBaseObjects;
@@ -119,7 +119,7 @@ public class World {
     public Tile GetTileAt(int x, int y)
     {
         // Check if coordinates are in range of the world
-        if (x > Width || x < 0 || y > Height || y < 0)
+        if (x >= Width || x < 0 || y >= Height || y < 0)
             return null;
 
         return tiles[x, y];

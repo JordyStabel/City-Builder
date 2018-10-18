@@ -100,7 +100,7 @@ public class Tile {
     /// <returns>true if it's a neighbour, false if not.</returns>
     public bool IsAdjacent(Tile tile, bool diagonalAllowed = false)
     {
-        return Mathf.Abs(X - tile.X) + Math.Abs(Y - tile.Y) == 1 || 
+        return Mathf.Abs(X - tile.X) + Mathf.Abs(Y - tile.Y) == 1 || 
             (diagonalAllowed && (Mathf.Abs(X - tile.X) == 1 && (Mathf.Abs(Y - tile.Y) == 1)));
     }
 

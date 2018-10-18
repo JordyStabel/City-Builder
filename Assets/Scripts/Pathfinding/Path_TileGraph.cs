@@ -4,6 +4,7 @@
 //===================================================================
 
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// This class creates a simple path-finding compatible graph of the World.
@@ -11,10 +12,14 @@ using System.Collections.Generic;
 /// </summary>
 public class Path_TileGraph {
 
-    Dictionary<Tile, Path_Node<Tile>> tileToNodeMap;
+    public Dictionary<Tile, Path_Node<Tile>> tileToNodeMap;
 
 	public Path_TileGraph(World world)
     {
+        Debug.Log("Path_TileGraph: fired");
+
+        int test = 0;
+
         // Loop through all tiles in the World
         // For each tile, create a node
         // Do we create nodes for non-floor tiles? Maybe...not sure yet
@@ -29,13 +34,18 @@ public class Path_TileGraph {
                 Tile tile = world.GetTileAt(x, y);
 
                 // Tiles with movementCost of 0 are impassable, 1 is normal & 1> is slower than normal movement
-                if (tile.MovementCost > 0)
-                {
-                    Path_Node<Tile> path_Node = new Path_Node<Tile>();
-                    tileToNodeMap.Add(tile, path_Node);
-                }
+                //if (tile.MovementCost > 0)
+                //{
+
+                //}
+
+                Path_Node<Tile> path_Node = new Path_Node<Tile>();
+                path_Node.data = tile;
+                tileToNodeMap.Add(tile, path_Node);
             }
         }
+
+        Debug.Log("Path_TileGraph: Created: " + tileToNodeMap.Count + " nodes");
 
         // Now loop through all tiles again
         // Create edges for neighbours
@@ -69,8 +79,11 @@ public class Path_TileGraph {
                 }
             }
 
+            test += path_Edges.Count;
+
             // Set path_Node's array equal to the path_Edges list, casted to an array
             path_Node.edges = path_Edges.ToArray();
         }
+        Debug.Log("Path_TileGraph: Created: " + test + " edges");
     }
 }
