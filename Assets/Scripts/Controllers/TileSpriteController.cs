@@ -48,6 +48,9 @@ public class TileSpriteController : MonoBehaviour {
 
                 // Add SpriteRenderer and default empty sprite to each tile_gameObject
                 tile_GameObject.AddComponent<SpriteRenderer>().sprite = emptySprite;
+
+                // Trigger callback action
+                OnTileChanged(tile_Data);
             }
         }
 

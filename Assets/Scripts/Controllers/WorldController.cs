@@ -36,16 +36,14 @@ public class WorldController : MonoBehaviour {
 
         if (loadWorld)
         {
-            CreateWorldFromSaveFile();
             loadWorld = false;
+            CreateWorldFromSaveFile();
         }
         else
         {
+            // Create new world with empty tiles
             CreateEmptyWorld();
         }
-
-        // Create new world with empty tiles
-        CreateEmptyWorld();
 
         // Randomize all tiles in the world this was just created (thus calling the 'OnTileChanged' function for each tile)
         //World.RandomizeTiles();
@@ -125,7 +123,6 @@ public class WorldController : MonoBehaviour {
         // Create world from save file data
         XmlSerializer xmlSerializer = new XmlSerializer(typeof(World));
         TextReader reader = new StringReader(PlayerPrefs.GetString("SaveGame_01"));
-        Debug.Log(reader.ToString());
         World = (World)xmlSerializer.Deserialize(reader);
         reader.Close();
 

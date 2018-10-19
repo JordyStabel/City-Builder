@@ -310,34 +310,56 @@ public class World : IXmlSerializable {
         //xmlWriter.WriteEndElement();
     }
 
+    /// <summary>
+    /// Read everything from a Xml-file
+    /// </summary>
+    /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
     public void ReadXml(XmlReader reader)
     {
         // Load data here
         Debug.Log("World::ReadXml -- fired");
 
-        reader.MoveToAttribute("Width");
-        Width = reader.ReadContentAsInt();
-
-        reader.MoveToAttribute("Height");
-        Height = reader.ReadContentAsInt();
-
-        // Move back to elements
-        reader.MoveToElement();
+        // Get width and height from XML file 
+        // (parsing to int could throw an error if typos are made or (expected) data isn't there)
+        Width = int.Parse(reader.GetAttribute("Width"));
+        Height = int.Parse(reader.GetAttribute("Height"));
         
+        // Create a World with width & height values from the Xml-file
         SetUpWorld(Width, Height);
 
-        reader.ReadToDescendant("Tiles");
-        reader.ReadToDescendant("Tile");
-        while (reader.IsStartElement("Tile"))
+        // Loop through all data from the Xml-file and read all Tiles
+        while (reader.Read())
         {
-            reader.MoveToAttribute("X");
-            int x = reader.ReadContentAsInt();
-            reader.MoveToAttribute("Y");
-            int y = reader.ReadContentAsInt();
+            // If reader is reading 'Tiles', let each tile read & set its own data
+            switch (reader.Name)
+            {
+                case "Tiles":
+                    ReadXml_Tiles(reader);
+                    break;
+            }
+        }
+    }
 
+    /// <summary>
+    /// Loop through all 'Tile' nodes in the 'Tiles' element of the Xml-file
+    /// </summary>
+    /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
+    void ReadXml_Tiles(XmlReader reader)
+    {
+        // While there is stuff to read, execute this function
+        while (reader.Read())
+        {
+            // Not looking at a tile anymore (looped through all tiles)
+            if (reader.Name != "Tile")
+                return;
+
+            // Get the X & Y values for each tile (again, parsing to int could throw an error)
+            int x = int.Parse(reader.GetAttribute("X"));
+            int y = int.Parse(reader.GetAttribute("Y"));
+
+            // Let each tile read & set its own data from the Xml-file
+            // Also needs to same reader
             tiles[x, y].ReadXml(reader);
-
-            reader.ReadToNextSibling("Tile");
         }
     }
     #endregion

@@ -181,13 +181,12 @@ public class Tile : IXmlSerializable {
     public void ReadXml(XmlReader reader)
     {
         // Load data here
-        reader.MoveToAttribute("X");
-        X = reader.ReadContentAsInt();
-        reader.MoveToAttribute("Y");
-        Y = reader.ReadContentAsInt();
-
-        reader.MoveToAttribute("TileType");
-        Type = (TileType)reader.ReadContentAsInt();
+        //X = int.Parse(reader.GetAttribute("X"));
+        //Y = int.Parse(reader.GetAttribute("Y"));
+        
+        // Cast the int (parsed, from 'TileType') to the correct TileType enum value
+        // Parsing might throw error
+        Type = (TileType)int.Parse(reader.GetAttribute("TileType"));
     }
     #endregion
 

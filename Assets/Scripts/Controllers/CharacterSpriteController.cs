@@ -31,8 +31,7 @@ public class CharacterSpriteController : MonoBehaviour {
         World.RegisterCharacterCreatedCallback(OnCharacterCreated);
 
         // DEBUG ONLY!
-        Character character = World.CreateCharacter(World.GetTileAt(World.Width / 2, World.Height / 2));
-        //character.SetDestination(World.GetTileAt((World.Width / 2) + 1, World.Height / 2));
+        World.CreateCharacter(World.GetTileAt(World.Width / 2, World.Height / 2));
     }
 
     /// <summary>
