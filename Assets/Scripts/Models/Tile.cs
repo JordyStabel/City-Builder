@@ -5,8 +5,11 @@
 
 using System;
 using UnityEngine;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
-public class Tile {
+public class Tile : IXmlSerializable {
     // Tiletype default = 'Empty'
     // Type getter & setter
     private TileType type = TileType.Empty;
@@ -159,6 +162,34 @@ public class Tile {
 
         return neighbouringTiles; ;
     }
+
+    #region Saving & Loading
+    public XmlSchema GetSchema()
+    {
+        // Just here so IXmlSerializable doesn't throw an error :)
+        return null;
+    }
+
+    public void WriteXml(XmlWriter writer)
+    {
+        // Save data here
+        writer.WriteAttributeString("X", X.ToString());
+        writer.WriteAttributeString("Y", Y.ToString());
+        writer.WriteAttributeString("TileType", ((int)Type).ToString());
+    }
+
+    public void ReadXml(XmlReader reader)
+    {
+        // Load data here
+        reader.MoveToAttribute("X");
+        X = reader.ReadContentAsInt();
+        reader.MoveToAttribute("Y");
+        Y = reader.ReadContentAsInt();
+
+        reader.MoveToAttribute("TileType");
+        Type = (TileType)reader.ReadContentAsInt();
+    }
+    #endregion
 
     #region (Un)Register callback(s)
     /// <summary>

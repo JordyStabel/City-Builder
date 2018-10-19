@@ -6,8 +6,11 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
-public class World {
+public class World : IXmlSerializable {
 
     // A 2D array that holds the tile data.
     Tile[,] tiles;
@@ -35,12 +38,22 @@ public class World {
     public JobQueue jobQueue;
 
     /// <summary>
+    /// Create a new World
+    /// </summary>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    public World (int width, int height)
+    {
+        SetUpWorld(width, height);
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="World"/> class.
-    /// Default: width = 100, height = 100
+    /// Not directly done in World constructor, so that the 'load from world' World constructer can use the same function.
     /// </summary>
     /// <param name="width">Width in number of tiles</param>
     /// <param name="height">Height in number of tiles</param>
-    public World (int width = 100, int height = 100)
+    void SetUpWorld(int width, int height)
     {
         jobQueue = new JobQueue();
         characters = new List<Character>();
@@ -61,7 +74,7 @@ public class World {
                 tiles[x, y].RegisterTileTypeChangedCallback(OnTileChanged);
             }
         }
-        Debug.Log("World created with: " + width * height + " tiles -- width: " + width + ", height: " + height );
+        Debug.Log("World created with: " + width * height + " tiles -- width: " + width + ", height: " + height);
 
         // Create new dictionary of baseInstalledObjects
         installedBaseObjects = new Dictionary<string, InstalledObject>();
@@ -259,6 +272,75 @@ public class World {
             
         return installedBaseObjects[installedObjectType];
     }
+
+    #region Saving & Loading
+    public World()
+    {
+
+    }
+
+    public XmlSchema GetSchema()
+    {
+        // Just here so IXmlSerializable doesn't throw an error :)
+        return null;
+    }
+
+    public void WriteXml(XmlWriter writer)
+    {     
+        // Save data here
+        writer.WriteAttributeString("Width", Width.ToString() );
+        writer.WriteAttributeString("Height", Height.ToString() );
+
+        writer.WriteStartElement("Tiles");
+
+        // Loop through all tiles in the world
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                writer.WriteStartElement("Tile");
+                tiles[x, y].WriteXml(writer);
+                writer.WriteEndElement();
+            }
+        }
+        writer.WriteEndElement();
+
+        //xmlWriter.WriteStartElement("Width");
+        //xmlWriter.WriteValue(Width);
+        //xmlWriter.WriteEndElement();
+    }
+
+    public void ReadXml(XmlReader reader)
+    {
+        // Load data here
+        Debug.Log("World::ReadXml -- fired");
+
+        reader.MoveToAttribute("Width");
+        Width = reader.ReadContentAsInt();
+
+        reader.MoveToAttribute("Height");
+        Height = reader.ReadContentAsInt();
+
+        // Move back to elements
+        reader.MoveToElement();
+        
+        SetUpWorld(Width, Height);
+
+        reader.ReadToDescendant("Tiles");
+        reader.ReadToDescendant("Tile");
+        while (reader.IsStartElement("Tile"))
+        {
+            reader.MoveToAttribute("X");
+            int x = reader.ReadContentAsInt();
+            reader.MoveToAttribute("Y");
+            int y = reader.ReadContentAsInt();
+
+            tiles[x, y].ReadXml(reader);
+
+            reader.ReadToNextSibling("Tile");
+        }
+    }
+    #endregion
 
     #region (Un)Register callback(s)
     /// <summary>

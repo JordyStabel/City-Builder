@@ -3,9 +3,13 @@
 //            https://github.com/JordyStabel/City-Builder
 //===================================================================
 
-using System.Xml.Serialization;
+using System;
+using System.Linq;
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Xml.Serialization;
+using System.IO;
 
 public class WorldController : MonoBehaviour {
 
@@ -83,6 +87,12 @@ public class WorldController : MonoBehaviour {
         Debug.Log("Save World button clicked.");
 
         XmlSerializer xmlSerializer = new XmlSerializer(typeof(World));
+        TextWriter textWriter = new StringWriter();
+        xmlSerializer.Serialize(textWriter, World);
+        textWriter.Close();
+
+        PlayerPrefs.SetString("SaveGame_01", textWriter.ToString());
+        Debug.Log(textWriter.ToString());
     }
 
     public void LoadWorld()
@@ -99,7 +109,7 @@ public class WorldController : MonoBehaviour {
     void CreateEmptyWorld()
     {
         // Create new world with empty tiles
-        World = new World();
+        World = new World(100, 100);
 
         // Center camera in the world
         Camera.main.transform.position = new Vector3(World.Width / 2, World.Height / 2, Camera.main.transform.position.z);
@@ -110,10 +120,14 @@ public class WorldController : MonoBehaviour {
     /// </summary>
     void CreateWorldFromSaveFile()
     {
-        Debug.LogError("CreateWorldFromSaveFile");
+        Debug.Log("CreateWorldFromSaveFile -- fired");
 
-        // Create new world with empty tiles
-        World = new World();
+        // Create world from save file data
+        XmlSerializer xmlSerializer = new XmlSerializer(typeof(World));
+        TextReader reader = new StringReader(PlayerPrefs.GetString("SaveGame_01"));
+        Debug.Log(reader.ToString());
+        World = (World)xmlSerializer.Deserialize(reader);
+        reader.Close();
 
         // Center camera in the world
         Camera.main.transform.position = new Vector3(World.Width / 2, World.Height / 2, Camera.main.transform.position.z);
