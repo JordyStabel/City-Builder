@@ -4,9 +4,12 @@
 //===================================================================
 
 using System;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
 // Things like buildings, machines, roads, ect.
-public class InstalledObject {
+public class InstalledObject : IXmlSerializable {
     
     // This represents the BASE tile of the object -- but large objects might require more tiles of space around it
     public Tile Tile { get; protected set; }
@@ -40,7 +43,8 @@ public class InstalledObject {
     // TODO: Implement object rotation
 
     // Protected constructor, so that in other classes no 'empty' InstalledObjects can get created.
-    protected InstalledObject() { }
+    // EDIT: Changed the public, because it's needed for loading and saving.
+    public InstalledObject() { }
 
     /// <summary>
     /// Create and return 'baseObject' InstalledObject
@@ -108,22 +112,30 @@ public class InstalledObject {
 
             // Check North
             tileToCheck = tile.World.GetTileAt(x, (y + 1));
-            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null 
+                && tileToCheck.InstalledObject.cb_OnChanged != null 
+                && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject); 
 
             // Check East
             tileToCheck = tile.World.GetTileAt((x + 1), y);
-            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null 
+                && tileToCheck.InstalledObject.cb_OnChanged != null 
+                && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
 
             // Check South
             tileToCheck = tile.World.GetTileAt(x, (y - 1));
-            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null 
+                && tileToCheck.InstalledObject.cb_OnChanged != null 
+                && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
 
             // Check West
             tileToCheck = tile.World.GetTileAt((x - 1), y);
-            if (tileToCheck != null && tileToCheck.InstalledObject != null && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
+            if (tileToCheck != null && tileToCheck.InstalledObject != null 
+                && tileToCheck.InstalledObject.cb_OnChanged != null 
+                && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
         }
 
@@ -173,6 +185,37 @@ public class InstalledObject {
         // Make sure there is either a NS or SW wall, to place the door in.
         return true;
     }
+
+    #region Saving & Loading
+    public XmlSchema GetSchema()
+    {
+        // Just here so IXmlSerializable doesn't throw an error :)
+        return null;
+    }
+
+    /// <summary>
+    /// Save 'ObjectType' & 'MovementCost' to Xml-file
+    /// </summary>
+    /// <param name="writer">Writer needed</param>
+    public void WriteXml(XmlWriter writer)
+    {
+        // Save data here
+        writer.WriteAttributeString("X", Tile.X.ToString());
+        writer.WriteAttributeString("Y", Tile.Y.ToString());
+        writer.WriteAttributeString("ObjectType", ObjectType);
+        writer.WriteAttributeString("MovementCost", MovementCost.ToString());
+    }
+
+    /// <summary>
+    /// Read and set MovementConst from a Xml-file
+    /// </summary>
+    /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
+    public void ReadXml(XmlReader reader)
+    {
+        // Position and type already have been set in 'World' => ReadXml_IstalledObjects
+        MovementCost = float.Parse(reader.GetAttribute("MovementCost"));
+    }
+    #endregion
 
     #region (Un)Register callback(s)
     /// <summary>

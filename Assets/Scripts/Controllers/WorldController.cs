@@ -3,10 +3,7 @@
 //            https://github.com/JordyStabel/City-Builder
 //===================================================================
 
-using System;
-using System.Linq;
 using UnityEngine;
-using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Xml.Serialization;
 using System.IO;

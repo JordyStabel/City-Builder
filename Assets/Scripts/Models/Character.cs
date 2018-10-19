@@ -5,8 +5,11 @@
 
 using UnityEngine;
 using System;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
-public class Character {
+public class Character : IXmlSerializable {
 
     public float X { get { return Mathf.Lerp(currentTile.X, nextTile.X, movementProgression); } }
     public float Y { get { return Mathf.Lerp(currentTile.Y, nextTile.Y, movementProgression); } }
@@ -30,6 +33,9 @@ public class Character {
 
     Action<Character> cb_CharacterChanged;
     Job currentJob;
+
+    // Used for saving and loading (serialization)
+    public Character() { }
 
     public Character(Tile tile)
     {
@@ -183,6 +189,33 @@ public class Character {
         // Reset job to null
         currentJob = null;
     }
+
+    #region Saving & Loading
+    public XmlSchema GetSchema()
+    {
+        // Just here so IXmlSerializable doesn't throw an error :)
+        return null;
+    }
+
+    public void WriteXml(XmlWriter writer)
+    {
+        // Save data here
+        // Currenty only saving character position NOT the job, movementspeed, ect.
+        writer.WriteAttributeString("X", currentTile.X.ToString());
+        writer.WriteAttributeString("Y", currentTile.Y.ToString());
+    }
+
+    /// <summary>
+    /// Read everything from a Xml-file
+    /// </summary>
+    /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
+    public void ReadXml(XmlReader reader)
+    {
+        // Load data from Xml-file
+
+        // Nothing for right now
+    }
+    #endregion
 
     #region (Un)Register callback(s)
     /// <summary>

@@ -14,6 +14,8 @@ public class Path_AStar{
     // Calculated with A*, 99% of the time it's the shortest path possible.
     Queue<Tile> path;
 
+    public LineRenderer lineRenderer;
+
 	public Path_AStar(World world, Tile startTile, Tile endTile)
     {
         // Check if there is a valid tile_Graph, otherwise create one
@@ -180,7 +182,6 @@ public class Path_AStar{
         // At this point: current == goal
         // Loop through the came_From map, till the end.
         // That last node will be the starting node.
-
         Queue<Tile> total_Path = new Queue<Tile>();
 
         // This is the 'final' step in the path, so the goal!

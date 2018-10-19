@@ -39,7 +39,11 @@ public class InstalledObjectSpriteController : MonoBehaviour {
 
         // Register function
         World.RegisterInstalledObjectCreated(OnInstalledObjectCreated);
-	}
+
+        // Loop through any PRE-EXISTING installedObjects (installedObject that were loaded in OnEnable) and call the OnCreatedCallback manually
+        foreach (InstalledObject installedObject in World.installedObjects)
+            OnInstalledObjectCreated(installedObject);
+    }
 
     /// <summary>
     /// Load sprite from resources folder

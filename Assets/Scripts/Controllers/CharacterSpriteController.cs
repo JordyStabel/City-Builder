@@ -30,8 +30,9 @@ public class CharacterSpriteController : MonoBehaviour {
         // Register function
         World.RegisterCharacterCreatedCallback(OnCharacterCreated);
 
-        // DEBUG ONLY!
-        World.CreateCharacter(World.GetTileAt(World.Width / 2, World.Height / 2));
+        // Loop through any PRE-EXISTING characters (characters that were loaded in OnEnable) and call the OnCharacterCreated manually
+        foreach (Character character in World.characters)
+            OnCharacterCreated(character);
     }
 
     /// <summary>

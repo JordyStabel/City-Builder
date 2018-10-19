@@ -15,8 +15,9 @@ public class World : IXmlSerializable {
     // A 2D array that holds the tile data.
     Tile[,] tiles;
 
-    // List of all characters in the world
-    List<Character> characters;
+    // Lists of all objects in the world
+    public List<Character> characters;
+    public List<InstalledObject> installedObjects;
 
     // The pathfinding graph used to navigate the world
     public Path_TileGraph path_TileGraph;
@@ -44,7 +45,11 @@ public class World : IXmlSerializable {
     /// <param name="height"></param>
     public World (int width, int height)
     {
+        // Create an empty world
         SetUpWorld(width, height);
+
+        // Create one character
+        CreateCharacter(tiles[Width / 2, Height / 2]);
     }
 
     /// <summary>
@@ -57,6 +62,7 @@ public class World : IXmlSerializable {
     {
         jobQueue = new JobQueue();
         characters = new List<Character>();
+        installedObjects = new List<InstalledObject>();
 
         // Set width & height
         Width = width;
@@ -193,7 +199,7 @@ public class World : IXmlSerializable {
     /// </summary>
     /// <param name="objectType">InstalledObject key.</param>
     /// <param name="tile">Tile to place InstalledObject on.</param>
-    public void PlaceInstalledObject(string objectType, Tile tile)
+    public InstalledObject PlaceInstalledObject(string objectType, Tile tile)
     {
         // TODO: Implement multiple tiles support
         // TODO: Implement rotation
@@ -202,7 +208,7 @@ public class World : IXmlSerializable {
         if (installedBaseObjects.ContainsKey(objectType) == false)
         {
             Debug.LogError("installedBaseObjects doesn't contain a baseObject for key: " + objectType);
-            return;
+            return null;
         }
 
         // Actually place the object on a tile
@@ -211,7 +217,7 @@ public class World : IXmlSerializable {
         if (installedObject == null)
         {
             // Failed to place installedObject -- most likely there was already something there.
-            return;
+            return null;
         }
 
         // If the callback action has registered function, call/execute them
@@ -220,6 +226,11 @@ public class World : IXmlSerializable {
             cb_InstalledObjectCreated(installedObject);
             InvalidateTileGraph();
         }
+
+        // Add it to the global list
+        installedObjects.Add(installedObject);
+
+        return installedObject;
     }
 
     /// <summary>
@@ -292,7 +303,6 @@ public class World : IXmlSerializable {
         writer.WriteAttributeString("Height", Height.ToString() );
 
         writer.WriteStartElement("Tiles");
-
         // Loop through all tiles in the world
         for (int x = 0; x < Width; x++)
         {
@@ -305,9 +315,25 @@ public class World : IXmlSerializable {
         }
         writer.WriteEndElement();
 
-        //xmlWriter.WriteStartElement("Width");
-        //xmlWriter.WriteValue(Width);
-        //xmlWriter.WriteEndElement();
+        writer.WriteStartElement("InstalledObjects");
+        // Loop through all installedObjects in the world
+        foreach (InstalledObject installedObject in installedObjects)
+        {
+            writer.WriteStartElement("InstalledObject");
+            installedObject.WriteXml(writer);
+            writer.WriteEndElement();
+        }
+        writer.WriteEndElement();
+
+        writer.WriteStartElement("Characters");
+        // Loop through all the characters in the world
+        foreach (Character character in characters)
+        {
+            writer.WriteStartElement("Character");
+            character.WriteXml(writer);
+            writer.WriteEndElement();
+        }
+        writer.WriteEndElement();
     }
 
     /// <summary>
@@ -336,6 +362,12 @@ public class World : IXmlSerializable {
                 case "Tiles":
                     ReadXml_Tiles(reader);
                     break;
+                case "InstalledObjects":
+                    ReadXml_IstalledObjects(reader);
+                    break;
+                case "Characters":
+                    ReadXml_Characters(reader);
+                    break;
             }
         }
     }
@@ -360,6 +392,52 @@ public class World : IXmlSerializable {
             // Let each tile read & set its own data from the Xml-file
             // Also needs to same reader
             tiles[x, y].ReadXml(reader);
+        }
+    }
+
+    /// <summary>
+    /// Loop through all 'InstalledObject' nodes in the 'InstalledObjects' element of the Xml-file
+    /// </summary>
+    /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
+    void ReadXml_IstalledObjects(XmlReader reader)
+    {
+        // While there is stuff to read, execute this function
+        while (reader.Read())
+        {
+            // Not looking at a InstalledObject anymore (looped through all InstalledObjects)
+            if (reader.Name != "InstalledObject")
+                return;
+
+            // Get the InstalledObject position for each InstalledObject
+            int x = int.Parse(reader.GetAttribute("X"));
+            int y = int.Parse(reader.GetAttribute("Y"));
+
+            // Place installedObject from Xml-file
+            InstalledObject installedObject = PlaceInstalledObject(reader.GetAttribute("ObjectType"), tiles[x, y]);
+            installedObject.ReadXml(reader);
+        }
+    }
+
+    /// <summary>
+    /// Loop through all 'Character' nodes in the 'Characters' element of the Xml-file
+    /// </summary>
+    /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
+    void ReadXml_Characters(XmlReader reader)
+    {
+        // While there is stuff to read, execute this function
+        while (reader.Read())
+        {
+            // Not looking at a Character anymore (looped through all Characters)
+            if (reader.Name != "Character")
+                return;
+
+            // Get the Character position for each Character
+            int x = int.Parse(reader.GetAttribute("X"));
+            int y = int.Parse(reader.GetAttribute("Y"));
+
+            // Create character from Xml-file
+            Character character = CreateCharacter(tiles[x, y]);
+            character.ReadXml(reader);
         }
     }
     #endregion
