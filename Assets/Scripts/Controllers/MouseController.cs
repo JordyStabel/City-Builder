@@ -22,6 +22,7 @@ public class MouseController : MonoBehaviour {
     [Header("General settings")]
     [Tooltip("Default: 2, higher = less maximal zoom")]
     float maxZoomIn = 2f;
+
     [Tooltip("Default: 20, higher = more maximal zoom")]
     float maxZoomOut = 20f;
 

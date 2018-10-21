@@ -34,9 +34,6 @@ public class JobSpriteController : MonoBehaviour {
         if (installedObjectSpriteController == null)
             installedObjectSpriteController = InstalledObjectSpriteController.Instance;
 
-        // Creating new gameObject
-        GameObject job_GameObject = new GameObject();
-
         // FIXME: This
         // Temp check to see if job isn't already in the queue
         if (jobGameObjectMap.ContainsKey(job))
@@ -44,7 +41,10 @@ public class JobSpriteController : MonoBehaviour {
             Debug.LogError("OnJobCreated for a job_GameObject that already exists -- likely a job being re-enqueued instead of actually getting created.");
             return;
         }
-            
+
+        // Creating new gameObject
+        GameObject job_GameObject = new GameObject();
+
         // Add job and gameobject to dictionary (job is the key)
         jobGameObjectMap.Add(job, job_GameObject);
 

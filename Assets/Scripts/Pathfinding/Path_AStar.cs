@@ -100,8 +100,10 @@ public class Path_AStar{
                 return;
             }
 
+            // Add tile to closedSet
             closedSet.Add(current);
 
+            // Loop through all neighbouring tiles
             foreach (Path_Edge<Tile> edge_Neighbour in current.edges)
             {
                 // Convert edge_Neighbour to node and store it for easier use.
@@ -113,19 +115,22 @@ public class Path_AStar{
                     continue;
                 }
                 
+                // The g_Score for now (voorlopige g_Score)
                 float tentative_gScore = g_Score[current] + (DistanceBetween(current, neighbour) * neighbour.data.MovementCost);
 
+                // If the openSet contains this neighbour AND the tentative_gScore >= than the g_Score of that neighbour, move to next one
                 if (openSet.Contains(neighbour) && tentative_gScore >= g_Score[neighbour])
                     continue;
 
+                //
                 came_From[neighbour] = current;
+
+                // Set final g_Score & f_Score
                 g_Score[neighbour] = tentative_gScore;
                 f_Score[neighbour] = g_Score[neighbour] + Heuristic_Cost_Estimate(neighbour, goal);
 
                 if (openSet.Contains(neighbour) == false)
-                {
                     openSet.Enqueue(neighbour, f_Score[neighbour]);
-                }
             }
         }
 

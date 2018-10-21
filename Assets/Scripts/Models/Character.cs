@@ -119,6 +119,10 @@ public class Character : IXmlSerializable {
                     path_AStar = null;
                     return;
                 }
+
+                // Grab the first tile and right away override it.
+                // First tile is the file the character is standing on, this results in some problems. (tile might have a movementCost of 0, like a wall that was just build by the character)
+                nextTile = path_AStar.DequeueNextTile();
             }
 
             // Grab the next tile
@@ -128,11 +132,6 @@ public class Character : IXmlSerializable {
                 Debug.LogError("UpdateCharacter_Movement: nextTile == currentTile? -- Only valid for startingTile.");
         }
 
-        //if (path_AStar.Length() == 1)
-        //{
-        //    return;
-        //}
-
         // At this point there a valid nextTile to move to.
 
         // Total distance from A to B (pythagorean theorem)
@@ -140,8 +139,21 @@ public class Character : IXmlSerializable {
             Mathf.Pow(currentTile.X - nextTile.X, 2) + 
             Mathf.Pow(currentTile.Y - nextTile.Y, 2));
 
+        /// Check if movementCost is 0, which it never should be.
+        /// Set nextTile to null, so that the character won't move.
+        /// Set path_AStart to null, this one is no longer valid.
+        if (nextTile.MovementCost == 0)
+        {
+            Debug.LogError("FIXME: A charcter tried to enter an unwalkable tile!");
+            nextTile = null;
+            path_AStar = null;
+            return;
+        }
+
         // Distance to travel in one tick (one frame)
-        float distanceThisTick = movementSpeed * deltaTime;
+        // nextTile.MovementCost can be 0 (which would throw an error) but it should never happen.
+        // Moving to a tile with a movementCost of 0 is NOT allowed
+        float distanceThisTick = (movementSpeed / nextTile.MovementCost)* deltaTime;
 
         // Progression in one tick
         float progressionThisTick = distanceThisTick / totalDistanceToTravel;

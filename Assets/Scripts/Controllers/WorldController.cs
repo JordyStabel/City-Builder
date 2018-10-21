@@ -87,6 +87,13 @@ public class WorldController : MonoBehaviour {
         textWriter.Close();
 
         PlayerPrefs.SetString("SaveGame_01", textWriter.ToString());
+
+        string path = "C:\\Users\\Jordy\\Desktop\\Test_Save.txt";
+
+        StreamWriter streamWriter = new StreamWriter(path);
+        streamWriter.Write(textWriter.ToString());
+        streamWriter.Close();
+
         Debug.Log(textWriter.ToString());
     }
 

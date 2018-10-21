@@ -14,7 +14,7 @@ using System.Collections.Generic;
 public class InstalledObject : IXmlSerializable {
 
     // Dictionary that maps functions to a given InstalledObject
-    public Dictionary<string, object> installedObjectParameters;
+    public Dictionary<string, float> installedObjectParameters;
 
     // Actions that need to run during a update tick
     public Action<InstalledObject, float> updateActions;
@@ -65,7 +65,7 @@ public class InstalledObject : IXmlSerializable {
     // EDIT: Changed the public, because it's needed for loading and saving.
     public InstalledObject()
     {
-        installedObjectParameters = new Dictionary<string, object>();
+        installedObjectParameters = new Dictionary<string, float>();
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class InstalledObject : IXmlSerializable {
         funcPositionValidation = __IsValidPosition;
 
         // Give each InstalledObject its own list installedObjectParameters
-        installedObjectParameters = new Dictionary<string, object>();
+        installedObjectParameters = new Dictionary<string, float>();
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class InstalledObject : IXmlSerializable {
 
         // Will make a copy of the updateActions form the 'other' installedObject. 
         // So that in the future each installedObject can add and remove updateActions
-        installedObjectParameters = new Dictionary<string, object>(other.installedObjectParameters);
+        installedObjectParameters = new Dictionary<string, float>(other.installedObjectParameters);
 
         if (other.updateActions != null)
             updateActions = (Action<InstalledObject, float>)other.updateActions.Clone();
@@ -162,18 +162,6 @@ public class InstalledObject : IXmlSerializable {
             int y = tile.Y;
 
             // Check all 4 sides, not sure if this does the same as the monster chunk of code underneath it
-            /*for (int _x = (x - 1); _x <= (x + 1); _x += 2)
-            {
-                for (int _y = (y - 1); _y <= (y + 1); _y += 2)
-                {
-                    tileToCheck = tile.World.GetTileAt(_x, _y);
-                    if (tileToCheck != null && tileToCheck.InstalledObject != null
-                        && tileToCheck.InstalledObject.cb_OnChanged != null
-                        && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
-                        tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
-                }
-            } */
-
             for (int _x = (x - 1); _x <= (x + 1); _x++)
             {
                 for (int _y = (y - 1); _y <= (y + 1); _y++)
@@ -286,17 +274,43 @@ public class InstalledObject : IXmlSerializable {
         writer.WriteAttributeString("X", Tile.X.ToString());
         writer.WriteAttributeString("Y", Tile.Y.ToString());
         writer.WriteAttributeString("ObjectType", ObjectType);
-        writer.WriteAttributeString("MovementCost", MovementCost.ToString());
+        //writer.WriteAttributeString("MovementCost", MovementCost.ToString());
+
+        foreach (string key in installedObjectParameters.Keys)
+        {
+            writer.WriteStartElement("Param");
+            writer.WriteAttributeString("Name", key);
+            writer.WriteAttributeString("Value", installedObjectParameters[key].ToString());
+            writer.WriteEndElement();
+        }
     }
 
     /// <summary>
-    /// Read and set MovementConst from a Xml-file
+    /// Read and set MovementConst and installedObjectParameters from a Xml-file
     /// </summary>
     /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
     public void ReadXml(XmlReader reader)
     {
-        // Position and type already have been set in 'World' => ReadXml_IstalledObjects
-        MovementCost = float.Parse(reader.GetAttribute("MovementCost"));
+        // Read and set MovementCost
+        //MovementCost = float.Parse(reader.GetAttribute("MovementCost"));
+
+        // If true, there is at least one paramter
+        if (reader.ReadToDescendant("Param"))
+        {
+            // Do-while loop, will run at least once, but will stop if the while statement isn't true anymore
+            // So if there are no more "Param" siblings left
+            do
+            {
+                // Get the parameters and values for each InstalledObject.
+                string key = reader.GetAttribute("Name");
+                float value = float.Parse(reader.GetAttribute("Value"));
+
+                // Map the key and value with each other
+                installedObjectParameters[key] = value;
+            }
+            // Loop through all sibling elements
+            while (reader.ReadToNextSibling("Param"));
+        }
     }
     #endregion
 

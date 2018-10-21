@@ -136,10 +136,10 @@ public class World : IXmlSerializable {
 
         installedBaseObjects.Add("Door", new InstalledObject(
             "Door",     // InstalledObject ID (type)
-            0,          // Movementcost: 0 = imappable, default = 1
+            1,          // Movementcost: 0 = imappable, default = 1
             1,          // Width, default = 1
             1,          // Height, default = 1
-            true        // Links to neighbours and 'forms' one large object, default = false
+            false       // Links to neighbours and 'forms' one large object, default = false
             ));
 
         installedBaseObjects["Door"].installedObjectParameters[""] = 0;
