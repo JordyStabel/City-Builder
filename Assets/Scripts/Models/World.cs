@@ -93,9 +93,13 @@ public class World : IXmlSerializable {
     /// <param name="deltaTime">The amount of time passed since last update. Higher = faster.</param>
     public void UpdateWorld(float deltaTime)
     {
-        // Update each character in the list
+        // Update each Character in the list
         foreach (Character character in characters)
             character.UpdateCharacter(deltaTime);
+
+        // Update each InstalledObject in the list
+        foreach (InstalledObject installedObject in installedObjects)
+            installedObject.Update_InstalledObject(deltaTime);
     }
 
     /// <summary>
@@ -115,18 +119,31 @@ public class World : IXmlSerializable {
     }
 
     /// <summary>
-    /// Create baseInstalledObject and add it to the dictionary
+    /// Create InstalledObject and add it to the dictionary
     /// </summary>
     void CreateBaseInstalledObjects()
     {
-        // Create and add baseInstalledObject to the dictionary
-        installedBaseObjects.Add("Wall", InstalledObject.CreateBaseObject(
+        // In the future this will get replaced by a function that reads all the data from a save-file/database
+
+        // Create and add InstalledObject to the dictionary
+        installedBaseObjects.Add("Wall", new InstalledObject(
             "Wall",     // InstalledObject ID (type)
             0,          // Movementcost: 0 = imappable, default = 1
             1,          // Width, default = 1
             1,          // Height, default = 1
             true        // Links to neighbours and 'forms' one large object, default = false
             ));
+
+        installedBaseObjects.Add("Door", new InstalledObject(
+            "Door",     // InstalledObject ID (type)
+            0,          // Movementcost: 0 = imappable, default = 1
+            1,          // Width, default = 1
+            1,          // Height, default = 1
+            true        // Links to neighbours and 'forms' one large object, default = false
+            ));
+
+        installedBaseObjects["Door"].installedObjectParameters[""] = 0;
+        installedBaseObjects["Door"].updateActions += InstalledObjectActions.Door_UpdateAction;
     }
 
     /// <summary>
@@ -378,20 +395,23 @@ public class World : IXmlSerializable {
     /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
     void ReadXml_Tiles(XmlReader reader)
     {
-        // While there is stuff to read, execute this function
-        while (reader.Read())
+        // If true, there is at least one tile
+        if (reader.ReadToDescendant("Tile"))
         {
-            // Not looking at a tile anymore (looped through all tiles)
-            if (reader.Name != "Tile")
-                return;
+            // Do-while loop, will run at least once, but will stop if the while statement isn't true anymore
+            // So if there are no more "Tile" siblings left
+            do
+            {
+                // Get the X & Y values for each tile (again, parsing to int could throw an error)
+                int x = int.Parse(reader.GetAttribute("X"));
+                int y = int.Parse(reader.GetAttribute("Y"));
 
-            // Get the X & Y values for each tile (again, parsing to int could throw an error)
-            int x = int.Parse(reader.GetAttribute("X"));
-            int y = int.Parse(reader.GetAttribute("Y"));
-
-            // Let each tile read & set its own data from the Xml-file
-            // Also needs to same reader
-            tiles[x, y].ReadXml(reader);
+                // Let each tile read & set its own data from the Xml-file
+                // Also needs to same reader
+                tiles[x, y].ReadXml(reader);
+            }
+            // Loop through all sibling elements
+            while (reader.ReadToNextSibling("Tile"));
         }
     }
 
@@ -401,20 +421,23 @@ public class World : IXmlSerializable {
     /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
     void ReadXml_IstalledObjects(XmlReader reader)
     {
-        // While there is stuff to read, execute this function
-        while (reader.Read())
+        // If true, there is at least one tile
+        if (reader.ReadToDescendant("InstalledObject"))
         {
-            // Not looking at a InstalledObject anymore (looped through all InstalledObjects)
-            if (reader.Name != "InstalledObject")
-                return;
+            // Do-while loop, will run at least once, but will stop if the while statement isn't true anymore
+            // So if there are no more "InstalledObject" siblings left
+            do
+            {
+                // Get the InstalledObject position for each InstalledObject
+                int x = int.Parse(reader.GetAttribute("X"));
+                int y = int.Parse(reader.GetAttribute("Y"));
 
-            // Get the InstalledObject position for each InstalledObject
-            int x = int.Parse(reader.GetAttribute("X"));
-            int y = int.Parse(reader.GetAttribute("Y"));
-
-            // Place installedObject from Xml-file
-            InstalledObject installedObject = PlaceInstalledObject(reader.GetAttribute("ObjectType"), tiles[x, y]);
-            installedObject.ReadXml(reader);
+                // Place installedObject from Xml-file
+                InstalledObject installedObject = PlaceInstalledObject(reader.GetAttribute("ObjectType"), tiles[x, y]);
+                installedObject.ReadXml(reader);
+            }
+            // Loop through all sibling elements
+            while (reader.ReadToNextSibling("InstalledObject"));
         }
     }
 
@@ -424,20 +447,23 @@ public class World : IXmlSerializable {
     /// <param name="reader">Needs XmlReader, so it's all from the same reader</param>
     void ReadXml_Characters(XmlReader reader)
     {
-        // While there is stuff to read, execute this function
-        while (reader.Read())
+        // If true, there is at least one tile
+        if (reader.ReadToDescendant("Character"))
         {
-            // Not looking at a Character anymore (looped through all Characters)
-            if (reader.Name != "Character")
-                return;
+            // Do-while loop, will run at least once, but will stop if the while statement isn't true anymore
+            // So if there are no more "Character" siblings left
+            do
+            {
+                // Get the Character position for each Character
+                int x = int.Parse(reader.GetAttribute("X"));
+                int y = int.Parse(reader.GetAttribute("Y"));
 
-            // Get the Character position for each Character
-            int x = int.Parse(reader.GetAttribute("X"));
-            int y = int.Parse(reader.GetAttribute("Y"));
-
-            // Create character from Xml-file
-            Character character = CreateCharacter(tiles[x, y]);
-            character.ReadXml(reader);
+                // Create character from Xml-file
+                Character character = CreateCharacter(tiles[x, y]);
+                character.ReadXml(reader);
+            }
+            // Loop through all sibling elements
+            while (reader.ReadToNextSibling("Character"));
         }
     }
     #endregion

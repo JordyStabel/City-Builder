@@ -7,10 +7,29 @@ using System;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using UnityEngine;
+using System.Collections.Generic;
 
 // Things like buildings, machines, roads, ect.
 public class InstalledObject : IXmlSerializable {
-    
+
+    // Dictionary that maps functions to a given InstalledObject
+    public Dictionary<string, object> installedObjectParameters;
+
+    // Actions that need to run during a update tick
+    public Action<InstalledObject, float> updateActions;
+
+    /// <summary>
+    /// Update tick for InstalledObjects, need deltaTime from somewhere else.
+    /// </summary>
+    /// <param name="deltaTime">The time between update ticks.</param>
+    public void Update_InstalledObject(float deltaTime)
+    {
+        // If there are update actions....run them
+        if (updateActions != null)
+            updateActions(this, deltaTime);
+    }
+
     // This represents the BASE tile of the object -- but large objects might require more tiles of space around it
     public Tile Tile { get; protected set; }
 
@@ -44,32 +63,65 @@ public class InstalledObject : IXmlSerializable {
 
     // Protected constructor, so that in other classes no 'empty' InstalledObjects can get created.
     // EDIT: Changed the public, because it's needed for loading and saving.
-    public InstalledObject() { }
+    public InstalledObject()
+    {
+        installedObjectParameters = new Dictionary<string, object>();
+    }
 
     /// <summary>
-    /// Create and return 'baseObject' InstalledObject
+    /// Create InstalledObject from the given parameters -- this will probably ONLY ever be used for 'baseInstalledObjects'
     /// </summary>
     /// <param name="objectType">The type of object/building</param>
     /// <param name="movementCost">The movementcost. Higher = slower and more expensive movement</param>
     /// <param name="width">Actual width of the object. (visually might be smaller)</param>
     /// <param name="height">Actual height of the object. (visually might be smaller)</param>
-    /// <returns>A 'baseObject' of InstalledObject</returns>
-    static public InstalledObject CreateBaseObject(string objectType, float movementCost = 1f, int width = 1, int height = 1, bool isLinkedToNeighbour = false)
+    public InstalledObject (string objectType, float movementCost = 1f, int width = 1, int height = 1, bool isLinkedToNeighbour = false)
     {
-        InstalledObject installedObject = new InstalledObject
-        {
-            ObjectType = objectType,
-            MovementCost = movementCost,
-            width = width,
-            height = height,
-            IsLinkedToNeighbour = isLinkedToNeighbour
-            
-        };
+        ObjectType = objectType;
+        MovementCost = movementCost;
+        this.width = width;
+        this.height = height;
+        IsLinkedToNeighbour = isLinkedToNeighbour;
 
         // Add validation function
-        installedObject.funcPositionValidation = installedObject.__IsValidPosition;
+        funcPositionValidation = __IsValidPosition;
 
-        return installedObject;
+        // Give each InstalledObject its own list installedObjectParameters
+        installedObjectParameters = new Dictionary<string, object>();
+    }
+
+    /// <summary>
+    /// Copy constructor, protected so only callable fromt this (and dereved classes)
+    /// </summary>
+    /// <param name="other">The object to copy</param>
+    protected InstalledObject(InstalledObject other)
+    {
+        ObjectType = other.ObjectType;
+        MovementCost = other.MovementCost;
+        width = other.width;
+        height = other.height;
+        IsLinkedToNeighbour = other.IsLinkedToNeighbour;
+
+        // Will make a copy of the dictionary form the 'other' installedObject. 
+        // So that in the future each installedObject can add and remove installedObjectParameters
+
+        // Will make a copy of the updateActions form the 'other' installedObject. 
+        // So that in the future each installedObject can add and remove updateActions
+        installedObjectParameters = new Dictionary<string, object>(other.installedObjectParameters);
+
+        if (other.updateActions != null)
+            updateActions = (Action<InstalledObject, float>)other.updateActions.Clone();
+    }
+
+    /// <summary>
+    /// Make a copy of the given 'input' object
+    /// Virtual so that it can be overriden by other derived classes.
+    /// Also, this way we always call the correct 'InstalledObject' constructor.
+    /// </summary>
+    /// <param name="other">New installedObject</param>
+    virtual public InstalledObject Clone()
+    {
+        return new InstalledObject(this);
     }
 
     /// <summary>
@@ -82,17 +134,16 @@ public class InstalledObject : IXmlSerializable {
     {
         // Don't place installedObject if it's not allowed
         if (baseObject.funcPositionValidation(tile) == false)
-            return null;
-
-        InstalledObject installedObject = new InstalledObject
         {
-            ObjectType = baseObject.ObjectType,
-            MovementCost = baseObject.MovementCost,
-            width = baseObject.width,
-            height = baseObject.height,
-            IsLinkedToNeighbour = baseObject.IsLinkedToNeighbour,
-            Tile = tile
-        };
+            Debug.LogError("InstalledObject::PlaceObject -- Position invalid!");
+            return null;
+        }
+
+        // Create new InstalledObject from baseObject using a cloning method
+        InstalledObject installedObject = baseObject.Clone();
+
+        // Set its Tile
+        installedObject.Tile = tile;
 
         // FIXME: Only works for 1x1 objects!
 
@@ -110,6 +161,37 @@ public class InstalledObject : IXmlSerializable {
             int x = tile.X;
             int y = tile.Y;
 
+            // Check all 4 sides, not sure if this does the same as the monster chunk of code underneath it
+            /*for (int _x = (x - 1); _x <= (x + 1); _x += 2)
+            {
+                for (int _y = (y - 1); _y <= (y + 1); _y += 2)
+                {
+                    tileToCheck = tile.World.GetTileAt(_x, _y);
+                    if (tileToCheck != null && tileToCheck.InstalledObject != null
+                        && tileToCheck.InstalledObject.cb_OnChanged != null
+                        && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
+                        tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
+                }
+            } */
+
+            for (int _x = (x - 1); _x <= (x + 1); _x++)
+            {
+                for (int _y = (y - 1); _y <= (y + 1); _y++)
+                {
+                    // If North, East, South or West => run check
+                    // Remove this if statement to also check diagonal neighbours
+                    if ((_x == (x-1) && _y == y) || (_x == (x + 1) && _y == y) || (_x == x && _y == (y - 1)) || (_x == x && _y == (y + 1)))
+                    {
+                        tileToCheck = tile.World.GetTileAt(_x, _y);
+                        if (tileToCheck != null && tileToCheck.InstalledObject != null
+                            && tileToCheck.InstalledObject.cb_OnChanged != null
+                            && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
+                            tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
+                    }
+                }
+            }
+
+            /*
             // Check North
             tileToCheck = tile.World.GetTileAt(x, (y + 1));
             if (tileToCheck != null && tileToCheck.InstalledObject != null 
@@ -137,6 +219,7 @@ public class InstalledObject : IXmlSerializable {
                 && tileToCheck.InstalledObject.cb_OnChanged != null 
                 && tileToCheck.InstalledObject.ObjectType == installedObject.ObjectType)
                 tileToCheck.InstalledObject.cb_OnChanged(tileToCheck.InstalledObject);
+                */
         }
 
         return installedObject;

@@ -51,7 +51,7 @@ public class InstalledObjectSpriteController : MonoBehaviour {
     private void LoadSprites()
     {
         // Loading all sprites and adding them to the dictionary
-        sprites = Resources.LoadAll<Sprite>("Sprites/Walls");
+        sprites = Resources.LoadAll<Sprite>("Sprites/InstalledObjects");
         foreach (Sprite sprite in sprites)
             installedObjectSpritesMap[sprite.name] = sprite;
     }
