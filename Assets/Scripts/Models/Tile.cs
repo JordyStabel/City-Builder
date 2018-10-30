@@ -49,7 +49,8 @@ public class Tile : IXmlSerializable {
                 return 1;
 
             return InstalledObject.MovementCost;
-        } }
+        }
+    }
 
     // Callback action for changing tile type
     Action<Tile> cb_TileTypeChanged;
@@ -161,6 +162,22 @@ public class Tile : IXmlSerializable {
         }
 
         return neighbouringTiles; ;
+    }
+
+
+    public EnterAbility IsEnterable()
+    {
+        // Can't enter if movementcost is 0 (like a wall, machine, ect.)
+        if (MovementCost == 0)
+            return EnterAbility.Never;
+
+        // Check installedObject to see if it has a special block on it with special enter conditions
+        // Has this tile a installedObject AND has the object a 'IsEnterable' func?
+        if (InstalledObject != null && InstalledObject.IsEnterable != null)
+            return InstalledObject.IsEnterable(InstalledObject);
+
+        // Otherwise tile is most likely enterable
+        return EnterAbility.Yes;
     }
 
     #region Saving & Loading

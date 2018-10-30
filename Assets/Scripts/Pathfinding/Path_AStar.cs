@@ -122,15 +122,18 @@ public class Path_AStar{
                 if (openSet.Contains(neighbour) && tentative_gScore >= g_Score[neighbour])
                     continue;
 
-                //
+                // The tile the character came from is now the current tile
                 came_From[neighbour] = current;
 
                 // Set final g_Score & f_Score
                 g_Score[neighbour] = tentative_gScore;
                 f_Score[neighbour] = g_Score[neighbour] + Heuristic_Cost_Estimate(neighbour, goal);
 
+                // If the openset doens't contain the neighbour, else update it's f_score
                 if (openSet.Contains(neighbour) == false)
                     openSet.Enqueue(neighbour, f_Score[neighbour]);
+                else
+                    openSet.UpdatePriority(neighbour, f_Score[neighbour]);
             }
         }
 

@@ -19,6 +19,8 @@ public class InstalledObject : IXmlSerializable {
     // Actions that need to run during a update tick
     public Action<InstalledObject, float> updateActions;
 
+    public Func<InstalledObject, EnterAbility> IsEnterable;
+
     /// <summary>
     /// Update tick for InstalledObjects, need deltaTime from somewhere else.
     /// </summary>
@@ -109,8 +111,12 @@ public class InstalledObject : IXmlSerializable {
         // So that in the future each installedObject can add and remove updateActions
         installedObjectParameters = new Dictionary<string, float>(other.installedObjectParameters);
 
+        // If 'other' has updateActions, copy those
         if (other.updateActions != null)
             updateActions = (Action<InstalledObject, float>)other.updateActions.Clone();
+
+        // Add 'IsEnterable' function
+        this.IsEnterable = other.IsEnterable;
     }
 
     /// <summary>

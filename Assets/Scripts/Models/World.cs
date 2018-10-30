@@ -142,8 +142,11 @@ public class World : IXmlSerializable {
             false       // Links to neighbours and 'forms' one large object, default = false
             ));
 
-        installedBaseObjects["Door"].installedObjectParameters[""] = 0;
+        // Add parameters and update-actions for newly created installedObjects
+        installedBaseObjects["Door"].installedObjectParameters["OpenValue"] = 0;
+        installedBaseObjects["Door"].installedObjectParameters["isOpening"] = 0;
         installedBaseObjects["Door"].updateActions += InstalledObjectActions.Door_UpdateAction;
+        installedBaseObjects["Door"].IsEnterable += InstalledObjectActions.Door_IsEnterable;
     }
 
     /// <summary>
@@ -325,9 +328,13 @@ public class World : IXmlSerializable {
         {
             for (int y = 0; y < Height; y++)
             {
-                writer.WriteStartElement("Tile");
-                tiles[x, y].WriteXml(writer);
-                writer.WriteEndElement();
+                // Only save tiles of type 'empty'
+                if (tiles[x, y].Type != TileType.Empty)
+                {
+                    writer.WriteStartElement("Tile");
+                    tiles[x, y].WriteXml(writer);
+                    writer.WriteEndElement();
+                }
             }
         }
         writer.WriteEndElement();

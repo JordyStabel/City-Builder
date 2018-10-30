@@ -101,6 +101,10 @@ public class Character : IXmlSerializable {
             return;
         }
 
+        // currentTile = The tile a character is currently standing on and might be in the process of leaving
+        // currentTile = The tile a character is entering
+        // currentTile = The final destination -- a character never gets here directly, but it's used for pathfinding instead
+
         // Grab 'next' nextTile
         if (nextTile == null || nextTile == currentTile)
         {
@@ -128,6 +132,7 @@ public class Character : IXmlSerializable {
             // Grab the next tile
             nextTile = path_AStar.DequeueNextTile();
 
+            // Check for error
             if (nextTile == currentTile)
                 Debug.LogError("UpdateCharacter_Movement: nextTile == currentTile? -- Only valid for startingTile.");
         }
@@ -142,11 +147,18 @@ public class Character : IXmlSerializable {
         /// Check if movementCost is 0, which it never should be.
         /// Set nextTile to null, so that the character won't move.
         /// Set path_AStart to null, this one is no longer valid.
-        if (nextTile.MovementCost == 0)
+        /// MovementCost can be 0 if something was build in the mean time
+        if (nextTile.IsEnterable() == EnterAbility.Never)
         {
             Debug.LogError("FIXME: A charcter tried to enter an unwalkable tile!");
             nextTile = null;
             path_AStar = null;
+            return;
+        }
+        // Character can't enter right now, but will be in the near future. (like a door or something)
+        else if (nextTile.IsEnterable() == EnterAbility.Soon)
+        {
+            // Temp
             return;
         }
 
