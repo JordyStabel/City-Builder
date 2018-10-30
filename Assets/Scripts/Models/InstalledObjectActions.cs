@@ -12,7 +12,7 @@ public static class InstalledObjectActions {
         // If the door isOpening is 'true' open the door a little bit more
         if (installedObject.installedObjectParameters["isOpening"] >= 1)
         {
-            installedObject.installedObjectParameters["OpenValue"] += deltaTime;
+            installedObject.installedObjectParameters["OpenValue"] += (deltaTime * 4);
 
             // If door is fully opened, close it again (right away)
             if (installedObject.installedObjectParameters["OpenValue"] >= 1)
@@ -20,10 +20,14 @@ public static class InstalledObjectActions {
         }
         // Close door again
         else
-            installedObject.installedObjectParameters["OpenValue"] -= deltaTime;
+            installedObject.installedObjectParameters["OpenValue"] -= (deltaTime * 4);
 
         // Clamp value between 0 & 1
         installedObject.installedObjectParameters["OpenValue"] = Mathf.Clamp01(installedObject.installedObjectParameters["OpenValue"]);
+
+        // Call the callback if there is any
+        if (installedObject.cb_OnChanged != null)
+            installedObject.cb_OnChanged(installedObject);
     }
 
     public static EnterAbility Door_IsEnterable(InstalledObject installedObject)

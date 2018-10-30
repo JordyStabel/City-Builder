@@ -142,6 +142,14 @@ public class World : IXmlSerializable {
             false       // Links to neighbours and 'forms' one large object, default = false
             ));
 
+        installedBaseObjects.Add("Road", new InstalledObject(
+            "Road",     // InstalledObject ID (type)
+            0.5f,      // Movementcost: 0 = imappable, default = 1
+            1,          // Width, default = 1
+            1,          // Height, default = 1
+            false       // Links to neighbours and 'forms' one large object, default = false
+            ));
+
         // Add parameters and update-actions for newly created installedObjects
         installedBaseObjects["Door"].installedObjectParameters["OpenValue"] = 0;
         installedBaseObjects["Door"].installedObjectParameters["isOpening"] = 0;

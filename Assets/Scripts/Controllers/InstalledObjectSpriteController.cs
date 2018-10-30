@@ -5,7 +5,6 @@
 
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 
 public class InstalledObjectSpriteController : MonoBehaviour {
 
@@ -73,7 +72,30 @@ public class InstalledObjectSpriteController : MonoBehaviour {
         installedObject_GameObject.transform.position = new Vector2(installedObject.Tile.X, installedObject.Tile.Y);
         // Setting the new tile as a child, maintaining a clean hierarchy
         installedObject_GameObject.transform.SetParent(this.transform, true);
-        
+
+        if (installedObject.ObjectType == "Door")
+        {
+            /// By default the door sprite is for walls to the east & west
+            /// Check to see if this door is meant for walls to the north & south
+            /// If so, rotate this gameobject by 90 degrees
+
+            Tile northTile = World.GetTileAt(installedObject.Tile.X, installedObject.Tile.Y + 1);
+            Tile southTile = World.GetTileAt(installedObject.Tile.X, installedObject.Tile.Y - 1);
+
+            // If true, there are wall to the north and south => rotate the GO 90 degress
+            if (northTile != null &&
+                southTile != null &&
+                northTile.InstalledObject != null &&
+                southTile.InstalledObject != null &&
+                northTile.InstalledObject.ObjectType == "Wall" &&
+                southTile.InstalledObject.ObjectType == "Wall")
+            {
+                installedObject_GameObject.transform.rotation = Quaternion.Euler(0, 0, 90);
+                // Nasty solution => fix 'Bottom Left' center of door sprites
+                installedObject_GameObject.transform.Translate(1, 0, 0, Space.World);
+            }
+        }
+
         SpriteRenderer spriteRenderer = installedObject_GameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = GetSpriteForInstalledObject(installedObject);
         spriteRenderer.sortingLayerName = "TileUI";
@@ -89,13 +111,34 @@ public class InstalledObjectSpriteController : MonoBehaviour {
     /// <returns>Sprite</returns>
     public Sprite GetSpriteForInstalledObject(InstalledObject installedObject)
     {
+        string spriteName = installedObject.ObjectType;
+
         // Return sprite with the same name as installedObject.ObjectType
         if (installedObject.IsLinkedToNeighbour == false)
         {
-            return installedObjectSpritesMap[installedObject.ObjectType];
+            // If it's a door, do something extra for the animation
+            if (installedObject.ObjectType == "Door")
+            {
+                // Door is fully closed
+                if (installedObject.installedObjectParameters["OpenValue"] < 0.1f)
+                    spriteName = "Door_Opening_0";
+                // Door is almost fully closed
+                else if (installedObject.installedObjectParameters["OpenValue"] < 0.34f)
+                    spriteName = "Door_Opening_1";
+                // Door is half open
+                else if (installedObject.installedObjectParameters["OpenValue"] < 0.67f)
+                    spriteName = "Door_Opening_2";
+                // Door is mostly open
+                else if (installedObject.installedObjectParameters["OpenValue"] < 0.95f)
+                    spriteName = "Door_Opening_3";
+                // Door is fully open
+                else
+                    spriteName = "Door_Opening_4";
+            }
+            return installedObjectSpritesMap[spriteName];
         }
 
-        string spriteName = installedObject.ObjectType + "_";
+        spriteName = installedObject.ObjectType + "_";
 
         /* Check for neighbours: North, East, South & West (in that order)
          * Check if: there are neighbouring tiles, 

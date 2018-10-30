@@ -61,6 +61,29 @@ public class JobSpriteController : MonoBehaviour {
         spriteRenderer.sortingLayerName = "Jobs";
         spriteRenderer.color = new Color(0.5f, 1f, 0.5f, 0.25f);
 
+        if (job.JobObjectType == "Door")
+        {
+            /// By default the door sprite is for walls to the east & west
+            /// Check to see if this door is meant for walls to the north & south
+            /// If so, rotate this gameobject by 90 degrees
+
+            Tile northTile = job.Tile.World.GetTileAt(job.Tile.X, job.Tile.Y + 1);
+            Tile southTile = job.Tile.World.GetTileAt(job.Tile.X, job.Tile.Y - 1);
+
+            // If true, there are wall to the north and south => rotate the GO 90 degress
+            if (northTile != null &&
+                southTile != null &&
+                northTile.InstalledObject != null &&
+                southTile.InstalledObject != null &&
+                northTile.InstalledObject.ObjectType == "Wall" &&
+                southTile.InstalledObject.ObjectType == "Wall")
+            {
+                job_GameObject.transform.rotation = Quaternion.Euler(0, 0, 90);
+                // Nasty solution => fix 'Bottom Left' center of door sprites
+                job_GameObject.transform.Translate(1, 0, 0, Space.World);
+            }
+        }
+
         // Registering callback actions for new job
         job.RegisterJobCompleteCallback(OnJobEnded);
         job.RegisterJobCancelCallback(OnJobEnded);

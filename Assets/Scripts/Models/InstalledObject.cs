@@ -56,7 +56,7 @@ public class InstalledObject : IXmlSerializable {
     public bool IsLinkedToNeighbour { get; protected set; }
 
     // Callback action for changing something on or with InstalledObject
-    Action<InstalledObject> cb_OnChanged;
+    public Action<InstalledObject> cb_OnChanged;
 
     Func<Tile, bool> funcPositionValidation;
 
