@@ -18,6 +18,7 @@ public class World : IXmlSerializable {
     // Lists of all objects in the world
     public List<Character> characters;
     public List<InstalledObject> installedObjects;
+    public List<Room> rooms;
 
     // The pathfinding graph used to navigate the world
     public Path_TileGraph path_TileGraph;
@@ -53,6 +54,43 @@ public class World : IXmlSerializable {
     }
 
     /// <summary>
+    /// Get the 'world' room which is always the first room in the list
+    /// </summary>
+    /// <returns>'world' room</returns>
+    public Room GetWorldRoom()
+    {
+        return rooms[0];
+    }
+
+    /// <summary>
+    /// Add a room to the world rooms list
+    /// </summary>
+    /// <param name="room">The room to add</param>
+    public void AddRoom(Room room)
+    {
+        rooms.Add(room);
+    }
+
+    /// <summary>
+    /// Delete a room unless it's the 'world' room
+    /// </summary>
+    /// <param name="room">The room that needs to be deleted</param>
+    public void DeleteRoom(Room room)
+    {
+        if (room == GetWorldRoom())
+        {
+            Debug.LogError("Can't delete the 'world' room!");
+            return;
+        }
+
+        // Remove this room from the rooms list
+        rooms.Remove(room);
+
+        // All tiles that belong to this room need to be re-assigned to the 'world' room
+        room.UnAssignAllTiles();
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="World"/> class.
     /// Not directly done in World constructor, so that the 'load from world' World constructer can use the same function.
     /// </summary>
@@ -63,6 +101,9 @@ public class World : IXmlSerializable {
         jobQueue = new JobQueue();
         characters = new List<Character>();
         installedObjects = new List<InstalledObject>();
+        rooms = new List<Room>();
+        // Add the 'world' room
+        rooms.Add(new Room());
 
         // Set width & height
         Width = width;
@@ -78,6 +119,8 @@ public class World : IXmlSerializable {
             {
                 tiles[x, y] = new Tile(this, x, y);
                 tiles[x, y].RegisterTileTypeChangedCallback(OnTileChanged);
+                // Add tile to room number 0 (the world itself)
+                tiles[x, y].room = rooms[0];
             }
         }
         Debug.Log("World created with: " + width * height + " tiles -- width: " + width + ", height: " + height);
@@ -131,7 +174,8 @@ public class World : IXmlSerializable {
             0,          // Movementcost: 0 = imappable, default = 1
             1,          // Width, default = 1
             1,          // Height, default = 1
-            true        // Links to neighbours and 'forms' one large object, default = false
+            true,       // Links to neighbours and 'forms' one large object, default = false
+            true        // Can enclose rooms
             ));
 
         installedBaseObjects.Add("Door", new InstalledObject(
@@ -139,15 +183,17 @@ public class World : IXmlSerializable {
             1,          // Movementcost: 0 = imappable, default = 1
             1,          // Width, default = 1
             1,          // Height, default = 1
-            false       // Links to neighbours and 'forms' one large object, default = false
+            false,      // Links to neighbours and 'forms' one large object, default = false
+            true        // Can enclose rooms
             ));
 
         installedBaseObjects.Add("Road", new InstalledObject(
             "Road",     // InstalledObject ID (type)
-            0.5f,      // Movementcost: 0 = imappable, default = 1
+            0.5f,       // Movementcost: 0 = imappable, default = 1
             1,          // Width, default = 1
             1,          // Height, default = 1
-            false       // Links to neighbours and 'forms' one large object, default = false
+            false,      // Links to neighbours and 'forms' one large object, default = false
+            false       // Can't enclose rooms
             ));
 
         // Add parameters and update-actions for newly created installedObjects
@@ -242,6 +288,12 @@ public class World : IXmlSerializable {
         // Actually place the object on a tile
         InstalledObject installedObject = InstalledObject.PlaceObject(installedBaseObjects[objectType], tile);
 
+        // Does the roomGraph need to recalculated? Only needs to happen if installedObject CAN create rooms
+        if (installedObject.RoomEnclosure == true)
+        {
+            Room.RunRoomFloodFill(installedObject);
+        }
+
         if (installedObject == null)
         {
             // Failed to place installedObject -- most likely there was already something there.
@@ -252,7 +304,10 @@ public class World : IXmlSerializable {
         if (cb_InstalledObjectCreated != null)
         {
             cb_InstalledObjectCreated(installedObject);
-            InvalidateTileGraph();
+            // Flag current pathfinding graph as invalid, because a new object has been placed.
+            // Only if the movementcost isn't 1 because that's the default value
+            if (installedObject.MovementCost != 1)
+                InvalidateTileGraph();
         }
 
         // Add it to the global list

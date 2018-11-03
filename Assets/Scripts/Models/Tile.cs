@@ -29,6 +29,9 @@ public class Tile : IXmlSerializable {
     // LooseObject: static buildings, pile of resources, equipment, etc.
     LooseObject looseObject;
 
+    // The room a tile is in
+    public Room room;
+
     // InstalledObject: wall, door, etc.
     public InstalledObject InstalledObject { get; protected set; }
 
@@ -178,6 +181,30 @@ public class Tile : IXmlSerializable {
 
         // Otherwise tile is most likely enterable
         return EnterAbility.Yes;
+    }
+
+    /// <summary>
+    /// Return the NESW neighbour of a tile
+    /// </summary>
+    /// <returns>NEWS neighbour tile or null</returns>
+    public Tile NorthNeighbour()
+    {
+        return World.GetTileAt(X, Y + 1);
+    }
+
+    public Tile EastNeighbour()
+    {
+        return World.GetTileAt(X + 1, Y);
+    }
+
+    public Tile SouthNeighbour()
+    {
+        return World.GetTileAt(X, Y - 1);
+    }
+
+    public Tile WestNeighbour()
+    {
+        return World.GetTileAt(X - 1, Y);
     }
 
     #region Saving & Loading

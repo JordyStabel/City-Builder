@@ -48,7 +48,10 @@ public class InstalledObject : IXmlSerializable {
     SPECIAL: If movementCost = 0, then this tile is impassable. (e.g. walls, buildings, large machines)
     */ 
     public float MovementCost { get; protected set; }
-    
+
+    // Decides wether or not a object can create a room (air/water tied structure)
+    public bool RoomEnclosure { get; protected set; }
+
     // A machine might be 3x2, but the graphic is only 3x1, the extra space is for walking/driving
     int width;
     int height;
@@ -77,13 +80,14 @@ public class InstalledObject : IXmlSerializable {
     /// <param name="movementCost">The movementcost. Higher = slower and more expensive movement</param>
     /// <param name="width">Actual width of the object. (visually might be smaller)</param>
     /// <param name="height">Actual height of the object. (visually might be smaller)</param>
-    public InstalledObject (string objectType, float movementCost = 1f, int width = 1, int height = 1, bool isLinkedToNeighbour = false)
+    public InstalledObject (string objectType, float movementCost = 1f, int width = 1, int height = 1, bool isLinkedToNeighbour = false, bool roomEnclosure = false)
     {
         ObjectType = objectType;
         MovementCost = movementCost;
         this.width = width;
         this.height = height;
         IsLinkedToNeighbour = isLinkedToNeighbour;
+        RoomEnclosure = roomEnclosure;
 
         // Add validation function
         funcPositionValidation = __IsValidPosition;
@@ -103,6 +107,7 @@ public class InstalledObject : IXmlSerializable {
         width = other.width;
         height = other.height;
         IsLinkedToNeighbour = other.IsLinkedToNeighbour;
+        RoomEnclosure = other.RoomEnclosure;
 
         // Will make a copy of the dictionary form the 'other' installedObject. 
         // So that in the future each installedObject can add and remove installedObjectParameters

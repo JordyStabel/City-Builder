@@ -60,6 +60,24 @@ public class MouseController : MonoBehaviour {
     }
 
     /// <summary>
+    /// Return the current mouse position in world units
+    /// </summary>
+    /// <returns>Current mouse position</returns>
+    public Vector2 GetMousePosition()
+    {
+        return currentFrameMousePosition;
+    }
+
+    /// <summary>
+    /// Return the tile that is currently under the mouse
+    /// </summary>
+    /// <returns>Tile under mouse</returns>
+    public Tile GetTileUnderMouse()
+    {
+        return WorldController.Instance.World.GetTileAt((int)currentFrameMousePosition.x, (int)currentFrameMousePosition.y);
+    }
+
+    /// <summary>
     /// Check if the mouse if hovering over a tile.
     /// Updating the cursor accordingly.
     /// </summary>
