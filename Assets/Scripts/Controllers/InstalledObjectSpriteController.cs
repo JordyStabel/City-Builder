@@ -120,16 +120,16 @@ public class InstalledObjectSpriteController : MonoBehaviour {
             if (installedObject.ObjectType == "Door")
             {
                 // Door is fully closed
-                if (installedObject.installedObjectParameters["OpenValue"] < 0.1f)
+                if (installedObject.GetParameter("OpenValue") < 0.1f)
                     spriteName = "Door_Opening_0";
                 // Door is almost fully closed
-                else if (installedObject.installedObjectParameters["OpenValue"] < 0.34f)
+                else if (installedObject.GetParameter("OpenValue") < 0.34f)
                     spriteName = "Door_Opening_1";
                 // Door is half open
-                else if (installedObject.installedObjectParameters["OpenValue"] < 0.67f)
+                else if (installedObject.GetParameter("OpenValue") < 0.67f)
                     spriteName = "Door_Opening_2";
                 // Door is mostly open
-                else if (installedObject.installedObjectParameters["OpenValue"] < 0.95f)
+                else if (installedObject.GetParameter("OpenValue") < 0.95f)
                     spriteName = "Door_Opening_3";
                 // Door is fully open
                 else

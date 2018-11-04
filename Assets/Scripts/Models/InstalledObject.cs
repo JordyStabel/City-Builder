@@ -13,11 +13,11 @@ using System.Collections.Generic;
 // Things like buildings, machines, roads, ect.
 public class InstalledObject : IXmlSerializable {
 
-    // Dictionary that maps functions to a given InstalledObject
-    public Dictionary<string, float> installedObjectParameters;
+    // Dictionary that maps functions/parameters to a given InstalledObject
+    Dictionary<string, float> installedObjectParameters;
 
     // Actions that need to run during a update tick
-    public Action<InstalledObject, float> updateActions;
+    Action<InstalledObject, float> updateActions;
 
     public Func<InstalledObject, EnterAbility> IsEnterable;
 
@@ -90,14 +90,14 @@ public class InstalledObject : IXmlSerializable {
         RoomEnclosure = roomEnclosure;
 
         // Add validation function
-        funcPositionValidation = __IsValidPosition;
+        funcPositionValidation = DEFAULT__IsValidPosition;
 
         // Give each InstalledObject its own list installedObjectParameters
         installedObjectParameters = new Dictionary<string, float>();
     }
 
     /// <summary>
-    /// Copy constructor, protected so only callable fromt this (and dereved classes)
+    /// Copy constructor, protected so only callable from this class (and derived classes)
     /// </summary>
     /// <param name="other">The object to copy</param>
     protected InstalledObject(InstalledObject other)
@@ -239,7 +239,7 @@ public class InstalledObject : IXmlSerializable {
     /// </summary>
     /// <param name="tile">Tile the validate.</param>
     /// <returns>isValid</returns>
-    public bool __IsValidPosition(Tile tile)
+    private bool DEFAULT__IsValidPosition(Tile tile)
     {
         // Make sure tile is of type Floor
         // Make sure tile doesn't already have installedObject
@@ -261,11 +261,50 @@ public class InstalledObject : IXmlSerializable {
     public bool __IsValidPosition_Door(Tile tile)
     {
         // Run 'normal' validation first
-        if (__IsValidPosition(tile) == false)
+        if (DEFAULT__IsValidPosition(tile) == false)
             return false;
 
         // Make sure there is either a NS or SW wall, to place the door in.
         return true;
+    }
+
+    /// <summary>
+    /// Get the value of a parameter from an installedObject.
+    /// </summary>
+    /// <param name="key">The key of the parameter</param>
+    /// <param name="defaultValue">Default value incase the key isn't valid</param>
+    /// <returns>Value of the parameter</returns>
+    public float GetParameter(string key, float defaultValue = 0)
+    {
+        if (installedObjectParameters.ContainsKey(key) == false)
+            return defaultValue;
+
+        return installedObjectParameters[key];
+    }
+
+    /// <summary>
+    /// Set a parameter's value
+    /// </summary>
+    /// <param name="key">The parameter to set its value</param>
+    /// <param name="value">The value to set</param>
+    public void SetParameter(string key, float value)
+    {
+        installedObjectParameters[key] = value;
+    }
+
+    /// <summary>
+    /// Change a parameter's value
+    /// </summary>
+    /// <param name="key">The parameter to change its value</param>
+    /// <param name="value">The value that is ADDED</param>
+    public void ChangeParameter(string key, float value)
+    {
+        // If key doesn't exist, create one with and set the value
+        if (installedObjectParameters.ContainsKey(key) == false)
+            installedObjectParameters[key] = value;
+
+        // Else add the value to the current value
+        installedObjectParameters[key] += value;
     }
 
     #region Saving & Loading
@@ -342,6 +381,24 @@ public class InstalledObject : IXmlSerializable {
     public void UnregisterOnChangedCallback(Action<InstalledObject> callbackFunction)
     {
         cb_OnChanged -= callbackFunction;
+    }
+
+    /// <summary>
+    /// Register an action that will get called every game-tick
+    /// </summary>
+    /// <param name="action">The action to run every game-tick</param>
+    public void RegisterUpdateAction(Action<InstalledObject, float> action)
+    {
+        updateActions += action;
+    }
+
+    /// <summary>
+    /// Unregister an action that will get called every game-tick
+    /// </summary>
+    /// <param name="action">The action to remove</param>
+    public void UnregisterUpdateAction(Action<InstalledObject, float> action)
+    {
+        updateActions -= action;
     }
     #endregion
 }

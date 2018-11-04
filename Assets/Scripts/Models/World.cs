@@ -197,10 +197,10 @@ public class World : IXmlSerializable {
             ));
 
         // Add parameters and update-actions for newly created installedObjects
-        installedBaseObjects["Door"].installedObjectParameters["OpenValue"] = 0;
-        installedBaseObjects["Door"].installedObjectParameters["isOpening"] = 0;
-        installedBaseObjects["Door"].updateActions += InstalledObjectActions.Door_UpdateAction;
-        installedBaseObjects["Door"].IsEnterable += InstalledObjectActions.Door_IsEnterable;
+        installedBaseObjects["Door"].SetParameter("OpenValue", 0);
+        installedBaseObjects["Door"].SetParameter("isOpening", 0);
+        installedBaseObjects["Door"].RegisterUpdateAction(InstalledObjectActions.Door_UpdateAction);
+        installedBaseObjects["Door"].IsEnterable = InstalledObjectActions.Door_IsEnterable;
     }
 
     /// <summary>
