@@ -27,7 +27,7 @@ public class Tile : IXmlSerializable {
     }
 
     // LooseObject: static buildings, pile of resources, equipment, etc.
-    LooseObject looseObject;
+    public LooseObject LooseObject { get; protected set; }
 
     // The room a tile is in
     public Room room;
@@ -93,6 +93,47 @@ public class Tile : IXmlSerializable {
         }
 
         InstalledObject = installedObject;
+        return true;
+    }
+
+    public bool PlaceLooseObject(LooseObject item)
+    {
+        // Uninstall looseObject
+        if (item == null)
+        {
+            LooseObject = null;
+            return true;
+        }
+
+        // Check to see if there is already a loosObject
+        // Check if the two are of the same type, if so combine them to one 'pile' if possible
+        if (LooseObject != null)
+        {
+            if (LooseObject.objectType != item.objectType)
+            {
+                Debug.LogError("Trying to assign looseObject to a tile that already has a different looseObject!");
+                return false;
+            }
+
+            int numToMove = item.stackSize;
+            if (LooseObject.stackSize + numToMove > LooseObject.maxStackSize)
+            {
+                numToMove = LooseObject.maxStackSize - LooseObject.stackSize;
+            }
+
+            LooseObject.stackSize += numToMove;
+            item.stackSize -= numToMove;
+
+            return true;
+        }
+
+        // Clone the looseObject
+        LooseObject = item.Clone();
+        LooseObject.tile = this;
+
+        // Set the stacksize of the looseObjec to 0
+        item.stackSize = 0;
+
         return true;
     }
 
@@ -166,7 +207,6 @@ public class Tile : IXmlSerializable {
 
         return neighbouringTiles; ;
     }
-
 
     public EnterAbility IsEnterable()
     {

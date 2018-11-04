@@ -19,6 +19,7 @@ public class World : IXmlSerializable {
     public List<Character> characters;
     public List<InstalledObject> installedObjects;
     public List<Room> rooms;
+    public InventoryManager inventoryManager;
 
     // The pathfinding graph used to navigate the world
     public Path_TileGraph path_TileGraph;
@@ -36,6 +37,7 @@ public class World : IXmlSerializable {
     Action<InstalledObject> cb_InstalledObjectCreated;
     Action<Tile> cb_TileChanged;
     Action<Character> cb_CharacterCreated;
+    Action<LooseObject> cb_LooseObjectCreated;
 
     public JobQueue jobQueue;
 
@@ -51,6 +53,12 @@ public class World : IXmlSerializable {
 
         // Create one character
         CreateCharacter(tiles[Width / 2, Height / 2]);
+    }
+
+    // Empty constructor used for saving and loading
+    public World()
+    {
+
     }
 
     /// <summary>
@@ -102,6 +110,7 @@ public class World : IXmlSerializable {
         characters = new List<Character>();
         installedObjects = new List<InstalledObject>();
         rooms = new List<Room>();
+        inventoryManager = new InventoryManager();
         // Add the 'world' room
         rooms.Add(new Room());
 
@@ -368,11 +377,6 @@ public class World : IXmlSerializable {
     }
 
     #region Saving & Loading
-    public World()
-    {
-
-    }
-
     public XmlSchema GetSchema()
     {
         // Just here so IXmlSerializable doesn't throw an error :)
@@ -457,6 +461,25 @@ public class World : IXmlSerializable {
                     break;
             }
         }
+
+        // DEBUG ONLY! REMOVE LATER!
+        LooseObject looseObject = new LooseObject();
+        Tile temp = GetTileAt(Width / 2, Height / 2);
+        inventoryManager.PlaceLooseObject(temp, looseObject);
+        if (cb_LooseObjectCreated != null)
+            cb_LooseObjectCreated(temp.LooseObject);
+
+        looseObject = new LooseObject();
+        temp = GetTileAt((Width / 2) + 2, Height / 2);
+        inventoryManager.PlaceLooseObject(temp, looseObject);
+        if (cb_LooseObjectCreated != null)
+            cb_LooseObjectCreated(temp.LooseObject);
+
+        looseObject = new LooseObject();
+        temp = GetTileAt(Width / 2, (Height / 2) + 1);
+        inventoryManager.PlaceLooseObject(temp, looseObject);
+        if (cb_LooseObjectCreated != null)
+            cb_LooseObjectCreated(temp.LooseObject);
     }
 
     /// <summary>
@@ -591,6 +614,24 @@ public class World : IXmlSerializable {
     public void UnregisterTileChanged(Action<Tile> callbackFunction)
     {
         cb_TileChanged -= callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void RegisterLooseObjectCreated(Action<LooseObject> callbackFunction)
+    {
+        cb_LooseObjectCreated += callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void UnregisterLooseObjectCreated(Action<LooseObject> callbackFunction)
+    {
+        cb_LooseObjectCreated -= callbackFunction;
     }
     #endregion
 }

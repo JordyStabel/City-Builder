@@ -47,6 +47,9 @@ TagManager:
   - name: Jobs
     uniqueID: 3452387237
     locked: 0
+  - name: LooseObjects
+    uniqueID: 4195802413
+    locked: 0
   - name: Characters
     uniqueID: 2918355305
     locked: 0
