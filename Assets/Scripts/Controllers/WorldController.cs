@@ -59,8 +59,8 @@ public class WorldController : MonoBehaviour {
     public Tile GetTileAtWorldCoordinate(Vector2 coordinates)
     {
         // Round float to int, since the tiles are all 1 by 1 unit
-        int x = Mathf.FloorToInt(coordinates.x);
-        int y = Mathf.FloorToInt(coordinates.y);
+        int x = Mathf.FloorToInt(coordinates.x + 0.5f);
+        int y = Mathf.FloorToInt(coordinates.y + 0.5f);
 
         return World.GetTileAt(x, y);
     }

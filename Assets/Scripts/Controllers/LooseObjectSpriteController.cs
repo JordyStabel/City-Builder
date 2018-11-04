@@ -5,8 +5,12 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LooseObjectSpriteController : MonoBehaviour {
+
+    [SerializeField]
+    private GameObject loosObjectUIPrefab;
 
     // Bind data to a GameObject
     Dictionary<LooseObject, GameObject> looseObjectGameObjectMap;
@@ -70,6 +74,15 @@ public class LooseObjectSpriteController : MonoBehaviour {
         SpriteRenderer spriteRenderer = looseObject_GameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = characterSpritesMap[looseObject.objectType];
         spriteRenderer.sortingLayerName = "LooseObjects";
+
+        // Create an UI element if the stacksize is more than 1
+        if (looseObject.maxStackSize > 1)
+        {
+            GameObject ui_Element = Instantiate(loosObjectUIPrefab);
+            ui_Element.transform.SetParent(looseObject_GameObject.transform);
+            ui_Element.transform.localPosition = Vector2.zero;
+            ui_Element.GetComponentInChildren<Text>().text = looseObject.stackSize.ToString();
+        }
 
         // FIXME: Add on change callback actions
         // Register action, which will run the funtion when 'tile' gets changed

@@ -465,18 +465,21 @@ public class World : IXmlSerializable {
         // DEBUG ONLY! REMOVE LATER!
         LooseObject looseObject = new LooseObject();
         Tile temp = GetTileAt(Width / 2, Height / 2);
+        looseObject.stackSize = 48;
         inventoryManager.PlaceLooseObject(temp, looseObject);
         if (cb_LooseObjectCreated != null)
             cb_LooseObjectCreated(temp.LooseObject);
 
         looseObject = new LooseObject();
         temp = GetTileAt((Width / 2) + 2, Height / 2);
+        looseObject.stackSize = 16;
         inventoryManager.PlaceLooseObject(temp, looseObject);
         if (cb_LooseObjectCreated != null)
             cb_LooseObjectCreated(temp.LooseObject);
 
         looseObject = new LooseObject();
         temp = GetTileAt(Width / 2, (Height / 2) + 1);
+        looseObject.stackSize = 8;
         inventoryManager.PlaceLooseObject(temp, looseObject);
         if (cb_LooseObjectCreated != null)
             cb_LooseObjectCreated(temp.LooseObject);

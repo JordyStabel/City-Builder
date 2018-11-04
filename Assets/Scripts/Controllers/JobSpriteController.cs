@@ -79,8 +79,6 @@ public class JobSpriteController : MonoBehaviour {
                 southTile.InstalledObject.ObjectType == "Wall")
             {
                 job_GameObject.transform.rotation = Quaternion.Euler(0, 0, 90);
-                // Nasty solution => fix 'Bottom Left' center of door sprites
-                job_GameObject.transform.Translate(1, 0, 0, Space.World);
             }
         }
 

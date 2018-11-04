@@ -74,7 +74,7 @@ public class MouseController : MonoBehaviour {
     /// <returns>Tile under mouse</returns>
     public Tile GetTileUnderMouse()
     {
-        return WorldController.Instance.World.GetTileAt((int)currentFrameMousePosition.x, (int)currentFrameMousePosition.y);
+        return WorldController.Instance.GetTileAtWorldCoordinate(currentFrameMousePosition);
     }
 
     /// <summary>
@@ -116,10 +116,10 @@ public class MouseController : MonoBehaviour {
             // Save starting tile
             startDragTilePosition = currentFrameMousePosition;
 
-        int start_X = Mathf.FloorToInt(startDragTilePosition.x);
-        int end_X = Mathf.FloorToInt(currentFrameMousePosition.x);
-        int start_Y = Mathf.FloorToInt(startDragTilePosition.y);
-        int end_Y = Mathf.FloorToInt(currentFrameMousePosition.y);
+        int start_X = Mathf.FloorToInt(startDragTilePosition.x + 0.5f);
+        int end_X = Mathf.FloorToInt(currentFrameMousePosition.x + 0.5f);
+        int start_Y = Mathf.FloorToInt(startDragTilePosition.y + 0.5f);
+        int end_Y = Mathf.FloorToInt(currentFrameMousePosition.y + 0.5f);
 
         // Swap intergers if players drags from top to bottom or right to left
         if (end_X < start_X)
