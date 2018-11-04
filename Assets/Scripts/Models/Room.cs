@@ -71,7 +71,7 @@ public class Room
         sourceInstalledObject.Tile.room = null;
         oldRoom.tiles.Remove(sourceInstalledObject.Tile);
 
-        if (sourceInstalledObject.Tile.room != world.GetWorldRoom())
+        if (oldRoom != world.GetWorldRoom())
         {
             // Oldroom should not contain any tiles anymore
             // Re-assign tiles to 'world' room
@@ -79,7 +79,7 @@ public class Room
             if (oldRoom.tiles.Count > 0)
                 Debug.LogError("Oldroom still contains tiles!");
 
-            world.DeleteRoom(sourceInstalledObject.Tile.room);
+            world.DeleteRoom(oldRoom);
         }
     }
 
@@ -117,7 +117,7 @@ public class Room
             {
                 newRoom.AssignTile(_tile);
 
-                Tile[] neighbours = tile.GetNeighbours();
+                Tile[] neighbours = _tile.GetNeighbours();
                 foreach (Tile temp in neighbours)
                 {
                     /// Tile is null or nothing (end of map) so this 'room' is part of the 'world' room.
@@ -137,8 +137,6 @@ public class Room
         }
 
         // Inform world that a new room has been created
-
-        // Current tile belongs to this new room.
-        newRoom.AssignTile(tile);
+        tile.World.AddRoom(newRoom);
     }
 }

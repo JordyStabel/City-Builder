@@ -6,7 +6,8 @@
 using UnityEngine.UI;
 using UnityEngine;
 
-public class MouseOverInstalledObjectTypeText : MonoBehaviour {
+public class MouseOverInstalledObjectTypeText : MonoBehaviour
+{
 
     [SerializeField]
     private Text textObject;
@@ -32,8 +33,8 @@ public class MouseOverInstalledObjectTypeText : MonoBehaviour {
             return;
         }
     }
-    
-	void Update ()
+
+    void Update()
     {
         Tile tile = mouseController.GetTileUnderMouse();
 
@@ -43,5 +44,6 @@ public class MouseOverInstalledObjectTypeText : MonoBehaviour {
             s = tile.InstalledObject.ObjectType;
 
         textObject.text = "InstalledObject: " + s;
-	}
+    }
 }
+

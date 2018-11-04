@@ -36,6 +36,6 @@ public class MouseOverRoomIndexText : MonoBehaviour {
 	void Update ()
     {
         Tile tile = mouseController.GetTileUnderMouse();
-        textObject.text = "Room Index: " + tile.World.rooms.FindIndex(tile.room);
+        textObject.text = "Room Index: " + tile.World.rooms.IndexOf(tile.room).ToString();
 	}
 }
