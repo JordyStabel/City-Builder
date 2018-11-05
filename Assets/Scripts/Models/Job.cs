@@ -4,14 +4,15 @@
 //===================================================================
 
 using System;
+using System.Collections.Generic;
 
 public class Job {
 
     /* This class holds data for a queued job, which can include things like:
        placing wall, buidlings, machines, moving resources, work, etc. */
-    
+
     // The tile the job 'sits' on and the time it will take to complete the job.
-    public Tile Tile { get; protected set; }
+    public Tile tile;
     float jobTime = 1f;
 
     // What type of job is this...
@@ -21,18 +22,61 @@ public class Job {
     Action<Job> cb_JobComplete;
     Action<Job> cb_JobCancel;
 
+    // Map a job to a looseObject, so the job 'knows' what materials it needs
+    public Dictionary<string, LooseObject> looseObjectRequirements;
+
     /// <summary>
     /// Job constructor, create a new job
     /// </summary>
     /// <param name="tile">Tile to place job on.</param>
     /// <param name="cb_JobComplete">Function to call after job completes.</param>
     /// <param name="jobTime">How long does this job take.</param>
-    public Job(Tile tile, string jobObjectType, Action<Job> cb_JobComplete, float jobTime = .1f)
+    public Job(Tile tile, string jobObjectType, Action<Job> cb_JobComplete, float jobTime, LooseObject[] looseObjectRequirements)
     {
-        Tile = tile;
+        this.tile = tile;
         JobObjectType = jobObjectType;
         this.cb_JobComplete = cb_JobComplete;
         this.jobTime = jobTime;
+
+        this.looseObjectRequirements = new Dictionary<string, LooseObject>();
+
+        // Map all requirements with a clone of the LooseObject, so that changing it later on won't actually change the LooseObject passed
+        if (looseObjectRequirements != null)
+        {
+            foreach (LooseObject looseObject in looseObjectRequirements)
+                this.looseObjectRequirements[looseObject.objectType] = looseObject.Clone();
+        }
+    }
+
+    /// <summary>
+    /// Copy constructor, protected so only callable from this class (and derived classes)
+    /// </summary>
+    /// <param name="other">The object to copy</param>
+    protected Job(Job other) {
+        tile = other.tile;
+        JobObjectType = other.JobObjectType;
+        cb_JobComplete = other.cb_JobComplete;
+        jobTime = other.jobTime;
+
+        this.looseObjectRequirements = new Dictionary<string, LooseObject>();
+
+        // Map all requirements with a clone of the LooseObject, so that changing it later on won't actually change the LooseObject passed
+        if (looseObjectRequirements != null)
+        {
+            foreach (LooseObject looseObject in other.looseObjectRequirements.Values)
+                this.looseObjectRequirements[looseObject.objectType] = looseObject.Clone();
+        }
+    }
+
+    /// <summary>
+    /// Make a copy of the given 'input' object
+    /// Virtual so that it can be overriden by other derived classes.
+    /// Also, this way we always call the correct 'job' constructor.
+    /// </summary>
+    /// <param name="other">New job</param>
+    virtual public Job Clone()
+    {
+        return new Job(this);
     }
 
     /// <summary>
@@ -61,6 +105,57 @@ public class Job {
         // If there is a JobCancel callback, call it
         if (cb_JobCancel != null)
             cb_JobCancel(this);
+    }
+
+    /// <summary>
+    /// Check to see if the job has contains all the materials it needs to execute the job.
+    /// </summary>
+    /// <returns>hasAllMaterials</returns>
+    public bool HasAllMaterials()
+    {
+        // Check all materials the job needs
+        foreach (LooseObject looseObject in looseObjectRequirements.Values)
+        {
+            // If it need more materials than it currently has => return false
+            if (looseObject.maxStackSize > looseObject.StackSize)
+                return false;
+        }
+
+        // Else return true
+        return true;
+    }
+    
+    /// <summary>
+    /// Checks if the LooseObject is required for the job and if the job doesn't already have enough.
+    /// Than returns the amount still required.
+    /// </summary>
+    /// <param name="looseObject">LooseObject to check</param>
+    /// <returns>Amount required</returns>
+    public int RequiredAmount(LooseObject looseObject)
+    {
+        // Material is not a required material, because it's not in the dictionary
+        if (looseObjectRequirements.ContainsKey(looseObject.objectType) == false)
+            return 0;
+
+        // Job already contain all the materials (at least for this type)
+        if (looseObjectRequirements[looseObject.objectType].StackSize >= looseObjectRequirements[looseObject.objectType].maxStackSize)
+            return 0;
+
+        // The material is correct and the job needs some or more than it correctly contains
+        return (looseObjectRequirements[looseObject.objectType].maxStackSize - looseObjectRequirements[looseObject.objectType].StackSize);
+    }
+
+    /// <summary>
+    /// Find the first looseObject that is required for this job.
+    /// </summary>
+    /// <returns>Required looseObject</returns>
+    public LooseObject GetFirstRequiredLooseObject()
+    {
+        foreach (LooseObject looseObject in looseObjectRequirements.Values)
+            if (looseObject.maxStackSize > looseObject.StackSize)
+                return looseObject;
+
+        return null;
     }
 
     #region (Un)Register callback(s)

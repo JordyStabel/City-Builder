@@ -27,7 +27,7 @@ public class Tile : IXmlSerializable {
     }
 
     // LooseObject: static buildings, pile of resources, equipment, etc.
-    public LooseObject LooseObject { get; protected set; }
+    public LooseObject LooseObject { get; set; }
 
     // The room a tile is in
     public Room room;
@@ -115,14 +115,14 @@ public class Tile : IXmlSerializable {
                 return false;
             }
 
-            int numToMove = item.stackSize;
-            if (LooseObject.stackSize + numToMove > LooseObject.maxStackSize)
+            int numToMove = item.StackSize;
+            if (LooseObject.StackSize + numToMove > LooseObject.maxStackSize)
             {
-                numToMove = LooseObject.maxStackSize - LooseObject.stackSize;
+                numToMove = LooseObject.maxStackSize - LooseObject.StackSize;
             }
 
-            LooseObject.stackSize += numToMove;
-            item.stackSize -= numToMove;
+            LooseObject.StackSize += numToMove;
+            item.StackSize -= numToMove;
 
             return true;
         }
@@ -132,7 +132,7 @@ public class Tile : IXmlSerializable {
         LooseObject.tile = this;
 
         // Set the stacksize of the looseObjec to 0
-        item.stackSize = 0;
+        item.StackSize = 0;
 
         return true;
     }

@@ -14,10 +14,23 @@ public class Character : IXmlSerializable {
     public float X { get { return Mathf.Lerp(currentTile.X, nextTile.X, movementProgression); } }
     public float Y { get { return Mathf.Lerp(currentTile.Y, nextTile.Y, movementProgression); } }
 
+    // The tile the character currently is located on
     Tile currentTile;
 
     // If character isn't moving -- destinationTile = currentTile
-    Tile destinationTile;
+    private Tile _destinationTile;
+    Tile DestinationTile {
+        get { return _destinationTile; }
+        set
+        {
+            // If this is a new destination, set destinationTile and invalidate path A*
+            if (_destinationTile != value)
+            {
+                _destinationTile = value;
+                path_AStar = null;
+            }
+        }
+    }
 
     // The next tile in the pathfinding sequence
     Tile nextTile;
@@ -34,12 +47,15 @@ public class Character : IXmlSerializable {
     Action<Character> cb_CharacterChanged;
     Job currentJob;
 
+    // The item the character is carrying at the moment
+    public LooseObject CurrentLooseObject { get; set; }
+
     // Used for saving and loading (serialization)
     public Character() { }
 
     public Character(Tile tile)
     {
-        currentTile = destinationTile = nextTile = tile;
+        currentTile = DestinationTile = nextTile = tile;
     }
 
     /// <summary>
@@ -63,27 +79,112 @@ public class Character : IXmlSerializable {
     {
         if (currentJob == null)
         {
-            // Grab job from jobQueue
-            currentJob = currentTile.World.jobQueue.Dequeue();
+            GetNewJob();
 
-            if (currentJob != null)
+            // There is no job on the queue, so stop moving and return
+            if (currentJob == null)
             {
-                // TODO: Check if job is reachable
-
-                destinationTile = currentJob.Tile;
-                currentJob.RegisterJobCancelCallback(OnJobEnded);
-                currentJob.RegisterJobCompleteCallback(OnJobEnded);
+                DestinationTile = currentTile;
+                return;
             }
         }
 
-        // Is this character at the correct destination?
-        if (currentTile == destinationTile)
-        // Character is adjacent to the job-side => execute job
-        //if (path_AStar != null && path_AStar.Length() == 1)
+        // From this point there is a reachable job!
+
+        // STEP 1: Does the job have all the materials it needs?
+        if (currentJob.HasAllMaterials() == false)
         {
-            // Execute job if there is one
-            if (currentJob != null)
-                currentJob.DoWork(deltaTime);
+            // Job is still missing some or all materials!
+
+            // STEP 2: Is the character CARRYING anything that this job requires?
+            if (CurrentLooseObject != null)
+            {
+                // If the materials the character is carrying are the correct materials needed for the current job
+                if (currentJob.RequiredAmount(CurrentLooseObject) > 0)
+                {
+                    // Deliver the materials.
+                    if (currentTile == currentJob.tile)
+                    {
+                        // Place LooseObject on the job tile
+                        currentTile.World.inventoryManager.PlaceLooseObjectOnJob(currentJob, CurrentLooseObject);
+
+                        // Is character still carrying stuff?
+                        if (CurrentLooseObject.StackSize == 0)
+                            CurrentLooseObject = null;
+                        else
+                        {
+                            Debug.LogError("Character is still carrrying materials, which it shouldn't be. FIX THIS");
+                            // Temp. solution
+                            CurrentLooseObject = null;
+                        }
+                    }
+                    // Move to the job tile and deliver the materials to the job-side
+                    else
+                    {
+                        DestinationTile = currentJob.tile;
+                        return;
+                    }
+                }
+                // Character is carrying something but not what the job requires
+                else
+                {
+                    // TODO: Move to nearest empty tile and dump materials there.
+                    if (currentTile.World.inventoryManager.PlaceLooseObjectOnTile(currentTile, CurrentLooseObject) == false)
+                    {
+                        Debug.LogError("Character tried to dump inventory into invalid tile!");
+                        // FIXME: Don't dump materials, just doing that so code can continue
+                        CurrentLooseObject = null;
+                    }
+                }
+            }
+            else
+            {
+                // It this point the job still requires more materials but the character isn't carrying any => go get the required materials.
+
+                // Is this this character already standing on a tile with the required materials for the current job?
+                // Pick up the materials
+                if (currentTile.LooseObject != null && currentJob.RequiredAmount(currentTile.LooseObject) > 0)
+                    currentTile.World.inventoryManager.PlaceLooseObjectOnCharacter(this, currentTile.LooseObject, currentJob.RequiredAmount(currentTile.LooseObject));
+                // Otherwise move towards the tile containing the required materials.
+                else
+                {
+                    // Find the first material/looseObject in the job that isn't yet supplied
+                    LooseObject required = currentJob.GetFirstRequiredLooseObject();
+
+                    LooseObject supplier = currentTile.World.inventoryManager.GetNearestLooseObjectOfType(
+                        required.objectType, currentTile, (required.maxStackSize - required.StackSize));
+
+                    // There simple aren't any materials in the world that the character's job requires.
+                    if (supplier == null)
+                    {
+                        Debug.LogWarning("No tile contains looseObjects of type: " + required.objectType + " to satisfy the job's requirements.");
+                        AbandonJob();
+                        return;
+                    }
+                    DestinationTile = supplier.tile;
+                    return;
+
+                    // FIXME: This a very wrong way of doing it!
+
+                    // If already on a tile with the required materials, pick them up.
+                    //destinationTile = someTileWithTheMaterials;
+                }
+            }
+
+            // Can't continue, untill the job has all required materials.
+            return;
+        }
+
+        // Job contains all required materials.
+        // Set the destination tile to the job-side tile
+        DestinationTile = currentJob.tile;
+
+        // Is this character at the correct destination AND is there a job to do?
+        if (currentTile == DestinationTile && currentJob != null)
+        {
+            // Character is at the correct tile and has a job, so execute the job's "DoWork".
+            // This is mostly counting down jobTime and might call its "Job Complete" callback action.
+            currentJob.DoWork(deltaTime);
         }
     }
 
@@ -94,7 +195,7 @@ public class Character : IXmlSerializable {
     void UpdateCharacter_Movement(float deltaTime)
     {
         // Is movement needed? Is character already at the correct location
-        if (currentTile == destinationTile)
+        if (currentTile == DestinationTile)
         {
             // Reset the current A* path
             path_AStar = null;
@@ -102,8 +203,8 @@ public class Character : IXmlSerializable {
         }
 
         // currentTile = The tile a character is currently standing on and might be in the process of leaving
-        // currentTile = The tile a character is entering
-        // currentTile = The final destination -- a character never gets here directly, but it's used for pathfinding instead
+        // nextTile = The tile a character is entering
+        // destinationTile = The final destination -- a character never gets here directly, but it's used for pathfinding instead
 
         // Grab 'next' nextTile
         if (nextTile == null || nextTile == currentTile)
@@ -112,7 +213,7 @@ public class Character : IXmlSerializable {
             if (path_AStar == null || path_AStar.Length() == 0)
             {
                 // Generate new A* path from currentTile to destinationTile
-                path_AStar = new Path_AStar(currentTile.World, currentTile, destinationTile);
+                path_AStar = new Path_AStar(currentTile.World, currentTile, DestinationTile);
 
                 // Check if path isn't null
                 if (path_AStar.Length() == 0)
@@ -120,7 +221,6 @@ public class Character : IXmlSerializable {
                     Debug.LogError("Path_AStar: Returned no path to destination!");
                     // FIXME: Job should get added back to queue
                     AbandonJob();
-                    path_AStar = null;
                     return;
                 }
 
@@ -182,13 +282,48 @@ public class Character : IXmlSerializable {
     }
 
     /// <summary>
+    /// Grab a new job from the queue. This will first check if the tile is reachable.
+    /// </summary>
+    private void GetNewJob()
+    {
+        // Grab job from jobQueue
+        currentJob = currentTile.World.jobQueue.Dequeue();
+
+        if (currentJob == null)
+            return;
+
+        // Set the destinationtile
+        DestinationTile = currentJob.tile;
+
+        // Add job callback actions
+        currentJob.RegisterJobCancelCallback(OnJobEnded);
+        currentJob.RegisterJobCompleteCallback(OnJobEnded);
+
+        // Check if the job tile is reachable
+        // NOTE: We might not be pathing to it right away (due to requiring materials),
+        // but we still need to verify that the final tile is reachalbe.
+        #region Check tile is reachable
+        // Generate new A* path from currentTile to destinationTile
+        path_AStar = new Path_AStar(currentTile.World, currentTile, DestinationTile);
+
+        // Check if path isn't null
+        if (path_AStar.Length() == 0)
+        {
+            Debug.LogError("Path_AStar: Returned no path to target job tile!");
+            // FIXME: Job should get added back to queue
+            AbandonJob();
+            DestinationTile = currentTile;
+        }
+        #endregion
+    }
+
+    /// <summary>
     /// Abandon a job, reset all the properties and re-enqueue the abandoned job.
     /// So that an other character can exectue the job (or the same character, but at a later time)
     /// </summary>
     public void AbandonJob()
     {
-        nextTile = destinationTile = currentTile;
-        path_AStar = null;
+        nextTile = DestinationTile = currentTile;
         currentTile.World.jobQueue.Enqueue(currentJob);
         currentJob = null;
     }
@@ -198,7 +333,7 @@ public class Character : IXmlSerializable {
         if (currentTile.IsAdjacent(tile, diagonalAllowed) == false)
             Debug.Log("Character::SetDestination -- Destination tile isn't adjacent to current tile!");
 
-        destinationTile = tile;
+        DestinationTile = tile;
     }
 
     void OnJobEnded(Job job)

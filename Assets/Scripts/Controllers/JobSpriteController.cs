@@ -49,8 +49,8 @@ public class JobSpriteController : MonoBehaviour {
         jobGameObjectMap.Add(job, job_GameObject);
 
         // Adding a name and position to each installedObject_GameObject
-        job_GameObject.name = "JOB_" + job.JobObjectType + "_" + job.Tile.X + "_" + job.Tile.Y;
-        job_GameObject.transform.position = new Vector2(job.Tile.X, job.Tile.Y);
+        job_GameObject.name = "JOB_" + job.JobObjectType + "_" + job.tile.X + "_" + job.tile.Y;
+        job_GameObject.transform.position = new Vector2(job.tile.X, job.tile.Y);
 
         // Setting the new tile as a child, maintaining a clean hierarchy
         job_GameObject.transform.SetParent(this.transform, true);
@@ -67,8 +67,8 @@ public class JobSpriteController : MonoBehaviour {
             /// Check to see if this door is meant for walls to the north & south
             /// If so, rotate this gameobject by 90 degrees
 
-            Tile northTile = job.Tile.World.GetTileAt(job.Tile.X, job.Tile.Y + 1);
-            Tile southTile = job.Tile.World.GetTileAt(job.Tile.X, job.Tile.Y - 1);
+            Tile northTile = job.tile.World.GetTileAt(job.tile.X, job.tile.Y + 1);
+            Tile southTile = job.tile.World.GetTileAt(job.tile.X, job.tile.Y - 1);
 
             // If true, there are wall to the north and south => rotate the GO 90 degress
             if (northTile != null &&

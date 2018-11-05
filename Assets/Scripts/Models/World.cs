@@ -27,6 +27,9 @@ public class World : IXmlSerializable {
     // Bind ObjectType to a InstalledObject
     Dictionary<string, InstalledObject> installedBaseObjects;
 
+    // Bind ObjectType to a Job
+    public Dictionary<string, Job> installedJobBaseObjects;
+
     // Number of tiles as width in the world
     public int Width { get; protected set; }
 
@@ -136,6 +139,7 @@ public class World : IXmlSerializable {
 
         // Create new dictionary of baseInstalledObjects
         installedBaseObjects = new Dictionary<string, InstalledObject>();
+        installedJobBaseObjects = new Dictionary<string, Job>();
         CreateBaseInstalledObjects();
     }
 
@@ -186,6 +190,8 @@ public class World : IXmlSerializable {
             true,       // Links to neighbours and 'forms' one large object, default = false
             true        // Can enclose rooms
             ));
+        // Add job requirements to the dictionary
+        installedJobBaseObjects.Add("Wall", new Job(null, "Wall", InstalledObjectActions.JobComplete_InstalledObject, 1f, new LooseObject[] { new LooseObject("Bricks", 5, 0) }));
 
         installedBaseObjects.Add("Door", new InstalledObject(
             "Door",     // InstalledObject ID (type)
@@ -465,22 +471,22 @@ public class World : IXmlSerializable {
         // DEBUG ONLY! REMOVE LATER!
         LooseObject looseObject = new LooseObject();
         Tile temp = GetTileAt(Width / 2, Height / 2);
-        looseObject.stackSize = 48;
-        inventoryManager.PlaceLooseObject(temp, looseObject);
+        looseObject.StackSize = 48;
+        inventoryManager.PlaceLooseObjectOnTile(temp, looseObject);
         if (cb_LooseObjectCreated != null)
             cb_LooseObjectCreated(temp.LooseObject);
 
         looseObject = new LooseObject();
         temp = GetTileAt((Width / 2) + 2, Height / 2);
-        looseObject.stackSize = 16;
-        inventoryManager.PlaceLooseObject(temp, looseObject);
+        looseObject.StackSize = 16;
+        inventoryManager.PlaceLooseObjectOnTile(temp, looseObject);
         if (cb_LooseObjectCreated != null)
             cb_LooseObjectCreated(temp.LooseObject);
 
         looseObject = new LooseObject();
         temp = GetTileAt(Width / 2, (Height / 2) + 1);
-        looseObject.stackSize = 8;
-        inventoryManager.PlaceLooseObject(temp, looseObject);
+        looseObject.StackSize = 8;
+        inventoryManager.PlaceLooseObjectOnTile(temp, looseObject);
         if (cb_LooseObjectCreated != null)
             cb_LooseObjectCreated(temp.LooseObject);
     }

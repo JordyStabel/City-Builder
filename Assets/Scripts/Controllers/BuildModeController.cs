@@ -76,12 +76,24 @@ public class BuildModeController : MonoBehaviour{
             // Can we build installedObjects in the seleceted tile? Run validation function
             if (WorldController.Instance.World.IsInstalledObjectPlacementValid(installedObjectType, tile) && tile.pendingInstalledObjectJob == null)
             {
-                // Create new job, with Lambda function with it
-                Job job = new Job(tile, installedObjectType, (theJob) => {
-                    WorldController.Instance.World.PlaceInstalledObject(installedObjectType, tile);
-                    tile.pendingInstalledObjectJob = null;
-                });
+                // Create new job with a callback action passed with it
+                Job job;
 
+                // Check if the jobtype already excists or we need to create a new one
+                if (WorldController.Instance.World.installedJobBaseObjects.ContainsKey(installedObjectType))
+                {
+                    // Create a clone of the installedJobBaseObject
+                    job = WorldController.Instance.World.installedJobBaseObjects[installedObjectType].Clone();
+
+                    // Assign the correct tile to the job
+                    job.tile = tile;
+                }
+                else
+                {
+                    Debug.LogError("There is no installedJobBaseObjects for: " + installedObjectType);
+                    job = new Job(tile, installedObjectType, InstalledObjectActions.JobComplete_InstalledObject, 0.1f, null);
+                }
+                
                 // Placing the new job in the jobQueue
                 WorldController.Instance.World.jobQueue.Enqueue(job);
 

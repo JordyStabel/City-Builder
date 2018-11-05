@@ -81,80 +81,13 @@ public class LooseObjectSpriteController : MonoBehaviour {
             GameObject ui_Element = Instantiate(loosObjectUIPrefab);
             ui_Element.transform.SetParent(looseObject_GameObject.transform);
             ui_Element.transform.localPosition = Vector2.zero;
-            ui_Element.GetComponentInChildren<Text>().text = looseObject.stackSize.ToString();
+            ui_Element.GetComponentInChildren<Text>().text = looseObject.StackSize.ToString();
         }
 
         // FIXME: Add on change callback actions
         // Register action, which will run the funtion when 'tile' gets changed
-        //looseObject.RegisterCharacterChangedCallback(OnCharacterChanged);
+        looseObject.RegisterLooseObjectChanged(OnLooseObjectChanged);
     }
-
-    /// <summary>
-    /// Return the correct sprite for a given installedObject
-    /// </summary>
-    /// <param name="installedObject">The installedObject that needs a sprite.</param>
-    /// <returns>Sprite</returns>
-    //public Sprite GetSpriteForInstalledObject(InstalledObject installedObject)
-    //{
-    //    // Return sprite with the same name as installedObject.ObjectType
-    //    if (installedObject.IsLinkedToNeighbour == false)
-    //    {
-    //        return installedObjectSpritesMap[installedObject.ObjectType];
-    //    }
-
-    //    string spriteName = installedObject.ObjectType + "_";
-
-    //    /* Check for neighbours: North, East, South & West (in that order)
-    //     * Check if: there are neighbouring tiles, 
-    //     * if those tiles have installedObject on them 
-    //     * if those objects are of the same type. */
-    //    Tile tile;
-    //    int x = installedObject.Tile.X;
-    //    int y = installedObject.Tile.Y;
-
-    //    // Check North
-    //    tile = World.GetTileAt(x, (y + 1));
-    //    if (TileCheck(tile, installedObject))
-    //        spriteName += "N";
-
-    //    // Check East
-    //    tile = World.GetTileAt((x + 1), y);
-    //    if (TileCheck(tile, installedObject))
-    //        spriteName += "E";
-
-    //    // Check South
-    //    tile = World.GetTileAt(x, (y - 1));
-    //    if (TileCheck(tile, installedObject))
-    //        spriteName += "S";
-
-    //    // Check West
-    //    tile = World.GetTileAt((x - 1), y);
-    //    if (TileCheck(tile, installedObject))
-    //        spriteName += "W";
-
-    //    // If there isn't a sprite with this current spritename, throw error and return null
-    //    if (installedObjectSpritesMap.ContainsKey(spriteName) == false)
-    //    {
-    //        Debug.LogError("installedObjectSpritesMap doesn't contain a sprite with the name: " + spriteName);
-    //        return null;
-    //    }
-
-    //    return installedObjectSpritesMap[spriteName];
-    //}
-
-
-    //public Sprite GetSpriteForInstalledObject(string installedObjectType)
-    //{
-    //    if (installedObjectSpritesMap.ContainsKey(installedObjectType))
-    //        return installedObjectSpritesMap[installedObjectType];
-
-    //    // Needed for walls (and maybe in the future other objects) because of the naming of walls
-    //    if (installedObjectSpritesMap.ContainsKey(installedObjectType + "_"))
-    //        return installedObjectSpritesMap[installedObjectType + "_"];
-
-    //    Debug.LogError("installedObjectSpritesMap doesn't contain a sprite with the name: " + installedObjectType);
-    //    return null;
-    //}
 
     /// <summary>
     /// Sub function, to make code little cleaner.
@@ -178,13 +111,15 @@ public class LooseObjectSpriteController : MonoBehaviour {
 
         if (looseObjectGameObjectMap.ContainsKey(looseObject) == false)
         {
-            Debug.LogError("OnCharacterChanged -- Trying to change visuals for Character not in dictionary!");
+            Debug.LogError("OnLooseObjectChanged -- Trying to change visuals for LooseObject not in dictionary!");
             return;
         }
 
-        GameObject character_GameObject = looseObjectGameObjectMap[looseObject];
-        //character_GameObject.GetComponent<SpriteRenderer>().sprite = GetSpriteForInstalledObject(installedObject);
+        GameObject looseObject_GameObject = looseObjectGameObjectMap[looseObject];
+        Text text = looseObject_GameObject.GetComponentInChildren<Text>();
 
-        //character_GameObject.transform.position = new Vector2(character.X, character.Y);
+        // FIXME: If looseObject.maxStackSize changed from/to 1, either create or destroy the text component
+        if (text != null)
+            text.text = looseObject.StackSize.ToString();
     }
 }

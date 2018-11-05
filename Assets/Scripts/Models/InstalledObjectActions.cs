@@ -42,4 +42,17 @@ public static class InstalledObjectActions {
         // Soon, door is going to open soonTM
         return EnterAbility.Soon;
     }
+
+    /// <summary>
+    /// Job completed callback action
+    /// </summary>
+    /// <param name="job">The job that will call this function</param>
+    public static void JobComplete_InstalledObject(Job job)
+    {
+        // Place the installedObject in the world
+        WorldController.Instance.World.PlaceInstalledObject(job.JobObjectType, job.tile);
+
+        // Reset the job of the tile that this job WAS on before
+        job.tile.pendingInstalledObjectJob = null;
+    }
 }
