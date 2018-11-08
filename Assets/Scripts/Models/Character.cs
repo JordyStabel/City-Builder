@@ -147,8 +147,16 @@ public class Character : IXmlSerializable {
 
                 // Is this this character already standing on a tile with the required materials for the current job?
                 // Pick up the materials
-                if (currentTile.LooseObject != null && currentJob.RequiredAmount(currentTile.LooseObject) > 0)
-                    currentTile.World.inventoryManager.PlaceLooseObjectOnCharacter(this, currentTile.LooseObject, currentJob.RequiredAmount(currentTile.LooseObject));
+                if (currentTile.LooseObject != null &&
+                    // Either the currentTile has no installedObject OR it's NOT a stockpile OR the job can take stuff from a stockpile
+                    (currentJob.canTakeFromStockpile || currentTile.InstalledObject == null || currentTile.InstalledObject.IsStockpile() == false) 
+                    && currentJob.RequiredAmount(currentTile.LooseObject) > 0)
+                {
+                    currentTile.World.inventoryManager.PlaceLooseObjectOnCharacter(
+                        this, 
+                        currentTile.LooseObject, 
+                        currentJob.RequiredAmount(currentTile.LooseObject));
+                }
                 // Otherwise move towards the tile containing the required materials.
                 else
                 {
@@ -156,11 +164,15 @@ public class Character : IXmlSerializable {
                     LooseObject required = currentJob.GetFirstRequiredLooseObject();
 
                     LooseObject supplier = currentTile.World.inventoryManager.GetNearestLooseObjectOfType(
-                        required.objectType, currentTile, (required.maxStackSize - required.StackSize));
+                        required.objectType, 
+                        currentTile, 
+                        (required.maxStackSize - required.StackSize), 
+                        currentJob.canTakeFromStockpile);
 
                     // There simple aren't any materials in the world that the character's job requires.
                     if (supplier == null)
                     {
+                        // TODO: Leave character in idle state if there are no other jobs to do aka stop the update loop
                         Debug.LogWarning("No tile contains looseObjects of type: " + required.objectType + " to satisfy the job's requirements.");
                         AbandonJob();
                         return;
@@ -342,6 +354,9 @@ public class Character : IXmlSerializable {
 
     void OnJobEnded(Job job)
     {
+        job.UnregisterJobCancelCallback(OnJobEnded);
+        job.UnregisterJobCompleteCallback(OnJobEnded);
+
         // Check if character is working on the correct job
         if (job != currentJob)
         {

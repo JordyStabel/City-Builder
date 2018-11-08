@@ -58,6 +58,9 @@ public class InstalledObject : IXmlSerializable {
     int width;
     int height;
 
+    // Custom color => default: white, so sprite have their normal color
+    public Color color = Color.white;
+
     public bool IsLinkedToNeighbour { get; protected set; }
 
     // Callback action for changing something on or with InstalledObject
@@ -109,6 +112,7 @@ public class InstalledObject : IXmlSerializable {
         MovementCost = other.MovementCost;
         width = other.width;
         height = other.height;
+        color = other.color;
         IsLinkedToNeighbour = other.IsLinkedToNeighbour;
         RoomEnclosure = other.RoomEnclosure;
 
@@ -345,6 +349,16 @@ public class InstalledObject : IXmlSerializable {
     {
         foreach (Job job in jobs)
             RemoveJob(job);
+    }
+
+    /// <summary>
+    /// Is this installedObject of type "Stockpile"
+    /// </summary>
+    /// <returns>Boolean</returns>
+    public bool IsStockpile()
+    {
+        // Hard code for now, probably needs to change later on
+        return (ObjectType == "Stockpile");
     }
 
     #region Saving & Loading

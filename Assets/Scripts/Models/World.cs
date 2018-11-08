@@ -216,12 +216,12 @@ public class World : IXmlSerializable {
             1,          // Movementcost: 0 = imappable, default = 1
             1,          // Width, default = 1
             1,          // Height, default = 1
-            false,       // Links to neighbours and 'forms' one large object, default = false
+            true,       // Links to neighbours and 'forms' one large object, default = false
             false        // Can enclose rooms
             ));
         // Add update action
         installedBaseObjects["Stockpile"].RegisterUpdateAction(InstalledObjectActions.Stockpile_UpdateAction);
-
+        installedBaseObjects["Stockpile"].color = new Color(255, 255, 255);
         // Add job requirements to the dictionary
         installedJobBaseObjects.Add("Stockpile", new Job(null, "Stockpile", InstalledObjectActions.JobComplete_InstalledObject, -1f, null));
 
@@ -396,6 +396,12 @@ public class World : IXmlSerializable {
         return installedBaseObjects[installedObjectType];
     }
 
+    public void OnLooseObjectCreated(LooseObject looseObject)
+    {
+        if (cb_LooseObjectCreated != null)
+            cb_LooseObjectCreated(looseObject);
+    }
+
     #region Saving & Loading
     public XmlSchema GetSchema()
     {
@@ -483,9 +489,8 @@ public class World : IXmlSerializable {
         }
 
         // DEBUG ONLY! REMOVE LATER!
-        LooseObject looseObject = new LooseObject("Bricks", 64, 6);
+        LooseObject looseObject = new LooseObject("Bricks", 64, 64);
         Tile temp = GetTileAt(Width / 2, Height / 2);
-        looseObject.StackSize = 8;
         inventoryManager.PlaceLooseObjectOnTile(temp, looseObject);
         if (cb_LooseObjectCreated != null)
             cb_LooseObjectCreated(temp.LooseObject);

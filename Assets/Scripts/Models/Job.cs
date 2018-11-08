@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Job {
 
@@ -25,6 +26,8 @@ public class Job {
     Action<Job> cb_JobComplete;
     Action<Job> cb_JobCancel;
     Action<Job> cb_JobProgressed;
+
+    public bool canTakeFromStockpile = true;
 
     // Map a job to a looseObject, so the job 'knows' what materials it needs
     public Dictionary<string, LooseObject> looseObjectRequirements;
@@ -89,6 +92,17 @@ public class Job {
     /// <param name="workTime">Time to deduct from jobTime. Higher = more work done.</param>
     public void DoWork(float workTime)
     {
+        // Check to make sure we actually have everything we need
+        // If not, don't register the work time
+        if (HasAllMaterials() == false)
+        {
+            //Debug.LogError("Tried to do work on a job that doesn't have all materials!");
+            // Job can't actually be worked on, but still call the callbacks so that sprites and values get updated
+            if (cb_JobProgressed != null)
+                cb_JobProgressed(this);
+            return;
+        }
+
         JobTime -= workTime;
 
         // Notify that there is work done

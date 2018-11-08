@@ -57,55 +57,87 @@ public static class InstalledObjectActions {
     }
 
 
+    public static LooseObject[] Stockpile_GetItemsFromFilter()
+    {
+        // TODO: This should be reading from some kind of UI for this stockpile
+
+        // Since jobs copy arrays automatically, we could already have an looseObject[] prepared and just return that
+        return new LooseObject[1] { new LooseObject("Bricks", 64, 0) };
+    }
+
     public static void Stockpile_UpdateAction(InstalledObject installedObject, float deltaTime)
     {
         /// Ensure that there is a job in the queue asking for either:
         ///     (if this.stockpile empty): That ANY material/items/looseObjects can be brought to us.
         ///     (if this.stockpile contains something already): If there is still room for more, bring it to this.stockpile
+    
+        // TODO: This function doesn't need to run each update.
+        // Instead it only needs to run when: 
+        //      - It gets created
+        //      - A good get delivered (at which point we reset the job)
+        //      - A good gets picked up (at which point we reset the job)
+        //      - The UI's filter of allowed items gets changed/updated
+
+        // Stockpile is full
+        if (installedObject.Tile.LooseObject != null && installedObject.Tile.LooseObject.StackSize >= installedObject.Tile.LooseObject.maxStackSize)
+        {
+            installedObject.ClearJobs();
+            return;
+        }
+
+        // Maybe we already have a job queued up? In which case we're good to go
+        if (installedObject.JobCount() > 0)
+            return;
+
+        // We're not full, but we don't have a job either
+        /// Two possibilities: Either we have SOME inventory OR we have NO inventory
+
+        // Check if there is an empty stockpile => should NOT happen
+        if (installedObject.Tile.LooseObject != null && installedObject.Tile.LooseObject.StackSize == 0)
+        {
+            Debug.LogError("Stockpile has a 0 sized stack!");
+            installedObject.ClearJobs();
+            return;
+        }
+
+        // TODO: In the future stockpiles => rather than being a bunch of individual 1x1 tiles, should create one large single object.
+
+        // Temp array of items that are required for the new job
+        LooseObject[] requiredItems;
 
         // Stockpile is empty => ask/accept ANYTHING
         if (installedObject.Tile.LooseObject == null)
+            requiredItems = Stockpile_GetItemsFromFilter();
+
+        // There is already a stack that isn't full yet => add more stuff
+        else
         {
             // Is there already a job => if so return
             if (installedObject.JobCount() > 0)
                 return;
 
-            Job job = new Job(
+            LooseObject desiredLooseObject = installedObject.Tile.LooseObject.Clone();
+            desiredLooseObject.maxStackSize -= desiredLooseObject.StackSize;
+            desiredLooseObject.StackSize = 0;
+
+            requiredItems = new LooseObject[] { desiredLooseObject };
+        }
+
+        // Create the new job with requiredItems
+        Job job = new Job(
                 installedObject.Tile,
                 null,
                 null,
                 0,
-                // FIXME: Need to be able to indicate all/any type is okay
-                // For now hard-coded 'Bricks'
-                new LooseObject[1] {new LooseObject("Bricks", 64, 0)} 
+                requiredItems
             );
-            job.RegisterJobProgressedCallback(Stockpile_JobProgressed);
 
-            installedObject.AddJob(job);
-        }
-        // There is already a stack but it isn't full yet => add more stuff
-        else if (installedObject.Tile.LooseObject.StackSize < installedObject.Tile.LooseObject.maxStackSize)
-        {
-            // Is there already a job => if so return
-            if (installedObject.JobCount() > 0)
-                return;
+        // TODO: Later on, add stockpile priorities, so that we can take from a lower priority for a higher one.
+        job.canTakeFromStockpile = false;
 
-            LooseObject optimalLooseObject = installedObject.Tile.LooseObject.Clone();
-            optimalLooseObject.maxStackSize -= optimalLooseObject.StackSize;
-            optimalLooseObject.StackSize = 0;
-
-            Job job = new Job(
-                installedObject.Tile,
-                null,
-                null,
-                0,
-                // Pass it's own inventory
-                new LooseObject[1] { installedObject.Tile.LooseObject }
-            );
-            job.RegisterJobProgressedCallback(Stockpile_JobProgressed);
-
-            installedObject.AddJob(job);
-        }
+        // Register callback and add job
+        job.RegisterJobProgressedCallback(Stockpile_JobProgressed);
+        installedObject.AddJob(job);
     }
 
     static void Stockpile_JobProgressed(Job job)

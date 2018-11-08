@@ -97,6 +97,7 @@ public class InstalledObjectSpriteController : MonoBehaviour {
         SpriteRenderer spriteRenderer = installedObject_GameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = GetSpriteForInstalledObject(installedObject);
         spriteRenderer.sortingLayerName = "TileUI";
+        spriteRenderer.color = installedObject.color;
 
         // Register action, which will run the funtion when 'tile' gets changed
         installedObject.RegisterOnChangedCallback(OnInstalledObjectChanged);
@@ -216,5 +217,6 @@ public class InstalledObjectSpriteController : MonoBehaviour {
 
         GameObject installedObject_GameObject = installedObjectGameObjectMap[installedObject];
         installedObject_GameObject.GetComponent<SpriteRenderer>().sprite = GetSpriteForInstalledObject(installedObject);
+        installedObject_GameObject.GetComponent<SpriteRenderer>().color = installedObject.color;
     }
 }

@@ -49,6 +49,9 @@ public class InventoryManager {
                 inventory[tile.LooseObject.objectType] = new List<LooseObject>();
 
             inventory[looseObject.objectType].Add(tile.LooseObject);
+
+            // Notify the world a looseObject was created
+            tile.World.OnLooseObjectCreated(tile.LooseObject);
         }
 
         return true;
@@ -183,7 +186,7 @@ public class InventoryManager {
     /// <param name="tile">Destination tile</param>
     /// <param name="requiredAmount">Required amount. If no stack has enough, it instead returns the largest stack.</param>
     /// <returns></returns>
-    public LooseObject GetNearestLooseObjectOfType(string objectType, Tile tile, int requiredAmount)
+    public LooseObject GetNearestLooseObjectOfType(string objectType, Tile tile, int requiredAmount, bool canTakeFromStockpile)
     {
         /// Things to FIX:
         ///     A) Return the actual nearest item
@@ -196,7 +199,9 @@ public class InventoryManager {
         }
 
         foreach (LooseObject looseObject in inventory[objectType])
-            if (looseObject.tile != null)
+            if (looseObject.tile != null &&
+                // Either this can take stuff from a stockpile OR the currentTile has no installedObject OR it's NOT a stockpile
+                (canTakeFromStockpile == true || looseObject.tile.InstalledObject == null || looseObject.tile.InstalledObject.IsStockpile() == false))
                 return looseObject;
 
         return null;
