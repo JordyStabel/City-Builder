@@ -66,7 +66,16 @@ public class InventoryManager {
     {
         // If amount is less than 0, add the whole stack
         if (amount < 0)
+        {
+            // Amount is the amount left in the stack
             amount = sourceLooseObject.StackSize;
+        }
+        else
+        {
+            // Amount is either the asked for amount or the amount left in the stack.
+            // Whichever value is the LOWEST!
+            amount = Mathf.Min(amount, sourceLooseObject.StackSize);
+        }
 
         // Check if character has a looseObject.
         // If it doesn't => create one and add it the inventory list

@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System;
+using UnityEngine;
 
 public class JobQueue {
 
@@ -21,6 +22,13 @@ public class JobQueue {
 
     public void Enqueue(Job job)
     {
+        // Job has a negative job-time => insta-complete it instead of adding it to the queue
+        if (job.JobTime < 0)
+        {
+            job.DoWork(0);
+            return;
+        }
+
         jobQueue.Enqueue(job);
 
         if (cb_JobCreated != null)
@@ -37,6 +45,29 @@ public class JobQueue {
             return null;
 
         return jobQueue.Dequeue();
+    }
+
+    /// <summary>
+    /// Remove a job from the queue
+    /// </summary>
+    /// <param name="job">Job to remove from queue</param>
+    public void Remove(Job job)
+    {
+        // Create a temp list of jobs
+        List<Job> jobs = new List<Job>(jobQueue);
+
+        // Check if job actually exists in the queue
+        if (jobs.Contains(job) == false)
+        {
+            Debug.LogError("Trying to remove a job that doesn't exist in the queue!");
+            return;
+        }
+
+        // Remove the selected job
+        jobs.Remove(job);
+
+        // Set the jobQueue to the temp list without the removed job
+        jobQueue = new Queue<Job>(jobs);
     }
 
     #region (Un)Register callback(s)

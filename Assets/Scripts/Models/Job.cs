@@ -13,14 +13,18 @@ public class Job {
 
     // The tile the job 'sits' on and the time it will take to complete the job.
     public Tile tile;
-    float jobTime = 1f;
+    public float JobTime { get; protected set; }
 
     // What type of job is this...
     public string JobObjectType { get; protected set; }
 
+    // Indicates if it is accepting all type of inventory/materials/resources
+    public bool acceptsAnyLooseObjectItem = false;
+
     // Actions for completing a job and canceling a job.
     Action<Job> cb_JobComplete;
     Action<Job> cb_JobCancel;
+    Action<Job> cb_JobProgressed;
 
     // Map a job to a looseObject, so the job 'knows' what materials it needs
     public Dictionary<string, LooseObject> looseObjectRequirements;
@@ -36,7 +40,7 @@ public class Job {
         this.tile = tile;
         JobObjectType = jobObjectType;
         this.cb_JobComplete = cb_JobComplete;
-        this.jobTime = jobTime;
+        this.JobTime = jobTime;
 
         this.looseObjectRequirements = new Dictionary<string, LooseObject>();
 
@@ -56,7 +60,7 @@ public class Job {
         tile = other.tile;
         JobObjectType = other.JobObjectType;
         cb_JobComplete = other.cb_JobComplete;
-        jobTime = other.jobTime;
+        JobTime = other.JobTime;
 
         this.looseObjectRequirements = new Dictionary<string, LooseObject>();
 
@@ -85,9 +89,13 @@ public class Job {
     /// <param name="workTime">Time to deduct from jobTime. Higher = more work done.</param>
     public void DoWork(float workTime)
     {
-        jobTime -= workTime;
+        JobTime -= workTime;
 
-        if (jobTime <= 0)
+        // Notify that there is work done
+        if (cb_JobProgressed != null)
+            cb_JobProgressed(this);
+
+        if (JobTime <= 0)
         {
             // If there is a JobComplete callback, call it
             if (cb_JobComplete != null)
@@ -105,6 +113,9 @@ public class Job {
         // If there is a JobCancel callback, call it
         if (cb_JobCancel != null)
             cb_JobCancel(this);
+
+        // Remove this job
+        tile.World.jobQueue.Remove(this);
     }
 
     /// <summary>
@@ -133,6 +144,10 @@ public class Job {
     /// <returns>Amount required</returns>
     public int RequiredAmount(LooseObject looseObject)
     {
+        // If the job accepts any type of material, it will return the max-amount it can take
+        if (acceptsAnyLooseObjectItem == true)
+            return looseObject.maxStackSize;
+
         // Material is not a required material, because it's not in the dictionary
         if (looseObjectRequirements.ContainsKey(looseObject.objectType) == false)
             return 0;
@@ -193,6 +208,24 @@ public class Job {
     public void UnregisterJobCancelCallback(Action<Job> callbackFunction)
     {
         cb_JobCancel -= callbackFunction;
+    }
+
+    /// <summary>
+    /// Register action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get registered.</param>
+    public void RegisterJobProgressedCallback(Action<Job> callbackFunction)
+    {
+        cb_JobProgressed += callbackFunction;
+    }
+
+    /// <summary>
+    /// Unregister action with given function
+    /// </summary>
+    /// <param name="callbackFunction">The function that is going to get unregistered.</param>
+    public void UnregisterJobProgressedCallback(Action<Job> callbackFunction)
+    {
+        cb_JobProgressed -= callbackFunction;
     }
     #endregion
 }

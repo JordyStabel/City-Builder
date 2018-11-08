@@ -21,6 +21,8 @@ public class InstalledObject : IXmlSerializable {
 
     public Func<InstalledObject, EnterAbility> IsEnterable;
 
+    List<Job> jobs;
+
     /// <summary>
     /// Update tick for InstalledObjects, need deltaTime from somewhere else.
     /// </summary>
@@ -71,6 +73,7 @@ public class InstalledObject : IXmlSerializable {
     public InstalledObject()
     {
         installedObjectParameters = new Dictionary<string, float>();
+        jobs = new List<Job>();
     }
 
     /// <summary>
@@ -115,6 +118,7 @@ public class InstalledObject : IXmlSerializable {
         // Will make a copy of the updateActions form the 'other' installedObject. 
         // So that in the future each installedObject can add and remove updateActions
         installedObjectParameters = new Dictionary<string, float>(other.installedObjectParameters);
+        jobs = new List<Job>();
 
         // If 'other' has updateActions, copy those
         if (other.updateActions != null)
@@ -305,6 +309,42 @@ public class InstalledObject : IXmlSerializable {
 
         // Else add the value to the current value
         installedObjectParameters[key] += value;
+    }
+
+    /// <summary>
+    /// Get the amount of jobs
+    /// </summary>
+    /// <returns>Amoun of jobs</returns>
+    public int JobCount()
+    {
+        return jobs.Count;
+    }
+
+    /// <summary>
+    /// Add a job to the jobs-list
+    /// </summary>
+    /// <param name="job">Job to add to the list</param>
+    public void AddJob(Job job)
+    {
+        jobs.Add(job);
+        Tile.World.jobQueue.Enqueue(job);
+    }
+
+    /// <summary>
+    /// Remove a job from the queue
+    /// </summary>
+    /// <param name="job">Job to remove</param>
+    public void RemoveJob(Job job)
+    {
+        jobs.Remove(job);
+        job.CancelJob();
+        Tile.World.jobQueue.Remove(job);
+    }
+
+    public void ClearJobs()
+    {
+        foreach (Job job in jobs)
+            RemoveJob(job);
     }
 
     #region Saving & Loading

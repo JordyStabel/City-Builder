@@ -107,8 +107,6 @@ public class LooseObjectSpriteController : MonoBehaviour {
     /// <param name="character">Character</param>
     private void OnLooseObjectChanged(LooseObject looseObject)
     {
-        // FIXME: Make this function work and call it
-
         if (looseObjectGameObjectMap.ContainsKey(looseObject) == false)
         {
             Debug.LogError("OnLooseObjectChanged -- Trying to change visuals for LooseObject not in dictionary!");
@@ -116,10 +114,22 @@ public class LooseObjectSpriteController : MonoBehaviour {
         }
 
         GameObject looseObject_GameObject = looseObjectGameObjectMap[looseObject];
-        Text text = looseObject_GameObject.GetComponentInChildren<Text>();
 
-        // FIXME: If looseObject.maxStackSize changed from/to 1, either create or destroy the text component
-        if (text != null)
-            text.text = looseObject.StackSize.ToString();
+        // If there are still items/materials left in the stack => update changes
+        if (looseObject.StackSize > 0)
+        {
+            Text text = looseObject_GameObject.GetComponentInChildren<Text>();
+
+            // FIXME: If looseObject.maxStackSize changed from/to 1, either create or destroy the text component
+            if (text != null)
+                text.text = looseObject.StackSize.ToString();
+        }
+        else
+        {
+            // The stack has gone to 0 => remove the sprite and reference to the sprite
+            looseObjectGameObjectMap.Remove(looseObject);
+            looseObject.UnregisterLooseObjectChanged(OnLooseObjectChanged);
+            Destroy(looseObject_GameObject);
+        }
     }
 }

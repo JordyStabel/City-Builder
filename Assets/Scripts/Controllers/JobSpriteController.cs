@@ -30,6 +30,10 @@ public class JobSpriteController : MonoBehaviour {
     /// <param name="job">The newly created job.</param>
     void OnJobCreated(Job job)
     {
+        // This job doesn't have a sprite => no need to render anything
+        if (job.JobObjectType == null)
+            return;
+
         // Grab reference first time creating a job
         if (installedObjectSpriteController == null)
             installedObjectSpriteController = InstalledObjectSpriteController.Instance;

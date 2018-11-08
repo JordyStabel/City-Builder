@@ -108,6 +108,10 @@ public class Character : IXmlSerializable {
                         // Place LooseObject on the job tile
                         currentTile.World.inventoryManager.PlaceLooseObjectOnJob(currentJob, CurrentLooseObject);
 
+                        // This will call cb_JobProgressedCallbacks, because even though there might not be any work done.
+                        // Updating materials might be usefull or tell that the requirements are met.
+                        currentJob.DoWork(0);
+
                         // Is character still carrying stuff?
                         if (CurrentLooseObject.StackSize == 0)
                             CurrentLooseObject = null;
