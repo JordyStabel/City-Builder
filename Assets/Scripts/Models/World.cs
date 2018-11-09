@@ -293,15 +293,30 @@ public class World : IXmlSerializable {
     {
         Debug.Log("Tiles randomized!");
 
+        int randomValue;
+
         // For each tile in the world, give it a random tileType
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
             {
-                if (UnityEngine.Random.Range(0, 2) == 0)
-                    tiles[x, y].Type = TileType.Empty;
-                else
+                randomValue = UnityEngine.Random.Range(0, 100);
+
+                if (randomValue < 25)
+                {
+                    // 25% chance for water
+                    tiles[x, y].Type = TileType.Water;
+                }
+                else if (randomValue >= 25 && randomValue < 35)
+                {
+                    // 10% chance for floor tile
                     tiles[x, y].Type = TileType.Floor;
+                }
+                else
+                {
+                    // Rest are empty tiles
+                    tiles[x, y].Type = TileType.Empty;
+                }
             }
         }
     }

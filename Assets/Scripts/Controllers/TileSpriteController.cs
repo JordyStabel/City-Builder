@@ -18,10 +18,25 @@ public class TileSpriteController : MonoBehaviour {
     [Header("Empty tile sprite")]
     public Sprite emptySprite;
 
+    [Header("Water tile sprite")]
+    public Sprite waterSprite;
+
+    // Sprites for watertiles
+    Sprite[] waterTileSprites;
+
+    // Bind sprites with a naming convention of the water tiles
+    Dictionary<string, Sprite> waterTileSpriteMap;
+
     // Get reference to the World
     World World { get { return WorldController.Instance.World; } }
 
     void Start () {
+
+        // Instatiate dictionary that binds a name with a sprite 
+        waterTileSpriteMap = new Dictionary<string, Sprite>();
+
+        // Load all water tile sprites
+        LoadWaterTileSprites();
 
         // Instatiate dictionary that binds a GameObject with data 
         tileGameObjectMap = new Dictionary<Tile, GameObject>();
@@ -57,6 +72,17 @@ public class TileSpriteController : MonoBehaviour {
         // Register action, which will run the funtion when tile_data gets changed
         World.RegisterTileChanged(OnTileChanged);
 	}
+
+    /// <summary>
+    /// Load water tile sprite from resources folder
+    /// </summary>
+    private void LoadWaterTileSprites()
+    {
+        // Loading all sprites and adding them to the dictionary
+        waterTileSprites = Resources.LoadAll<Sprite>("Sprites/WaterTiles");
+        foreach (Sprite sprite in waterTileSprites)
+            waterTileSpriteMap[sprite.name] = sprite;
+    }
 
     #region CURRENTLY NOT IN USE - Unbind pairs in dictionary
     /// <summary>
@@ -113,8 +139,264 @@ public class TileSpriteController : MonoBehaviour {
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = floorSprite;
         else if (tile_Data.Type == TileType.Empty)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = emptySprite;
+        else if (tile_Data.Type == TileType.Water)
+            SetWaterTileSprite(tile_Data, tile_GameObject);
         else
             Debug.LogError("OnTileTypeChanged - Unknown tile type.");
+    }
+
+
+    private void SetWaterTileSprite(Tile tile, GameObject tile_GameObject)
+    {
+        // The tile-sprite name
+        string tileCode = string.Empty;
+
+        // Neighbouring tiles to check
+        Tile checkTile;
+
+        // Loop through all neighbouring tiles
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                // Prevent checking the starting tile => don't change tileCode for the starting tile, this would result in a 9 character string instead of 8 or less
+                if (x != 0 || y != 0)
+                {
+                    // If a neighbour has water, add a "W" (for water) else add a "E" (for empty/earth)
+                    //if (HasWater(tilemap, new Vector3Int(location.x + x, location.y + y, location.z)))
+
+                    checkTile = tile.World.GetTileAt(tile.X + x, tile.Y + y);
+
+                    // If the tile is null, that means there is no tile (edge of map)
+                    if (checkTile == null || checkTile.Type != TileType.Water)
+                        tileCode += 'E';
+
+                    // If we get here it means checkTile is NOT null
+                    else if (checkTile.Type == TileType.Water)
+                        tileCode += 'W';
+
+                    // It should never come here...
+                    else
+                    {
+                        tileCode += 'E';
+                        Debug.LogError("This shouldn't run => tile is not NULL nor water");
+                    }
+                }
+            }
+        }
+
+        tile_GameObject.name += " => " + tileCode;
+
+        // Add randomness to the water tiles
+        // Works because this function only get's called for neighbours and not all tiles.
+        // Also, full water tiles never get set else where
+        int randomVal = Random.Range(0, 100);
+
+        if (randomVal < 15)
+        {
+            // 15% chance for lilly-pad
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["46"];
+        }
+        else if (randomVal >= 15 && randomVal < 35)
+        {
+            // 20% chance for wave
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["48"];
+        }
+        else
+        {
+            // Rest is normal water
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["47"];
+        }
+
+        // FIXME: Change sprite names so this monster of a IF-statement can be removed!
+
+        // Check the tileCode and set the tile sprite according to the tileCode
+        #region Finding correct sprite
+        if (tileCode[1] == 'E' && tileCode[3] == 'E' && tileCode[4] == 'E' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["0"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[5] == 'W' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["1"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[5] == 'E' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["2"];
+        }
+        else if (tileCode[0] == 'W' && tileCode[1] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[5] == 'W' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["3"];
+        }
+        else if (tileCode[0] == 'W' && tileCode[1] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["4"];
+        }
+        else if (tileCode[0] == 'E' && tileCode[1] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["5"];
+        }
+        else if (tileCode[0] == 'E' && tileCode[1] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[5] == 'W' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["6"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[5] == 'W' && tileCode[6] == 'W' && tileCode[7] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["7"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[6] == 'W' && tileCode[5] == 'E' && tileCode[7] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["8"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[5] == 'W' && tileCode[6] == 'W' && tileCode[7] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["9"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[5] == 'E' && tileCode[6] == 'W' && tileCode[7] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["10"];
+        }
+        else if (tileCode[0] == 'E' && tileCode[1] == 'W' && tileCode[2] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["11"];
+        }
+        else if (tileCode[0] == 'W' && tileCode[1] == 'W' && tileCode[2] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["12"];
+        }
+        else if (tileCode[0] == 'W' && tileCode[1] == 'W' && tileCode[2] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["13"];
+        }
+        else if (tileCode[0] == 'W' && tileCode[1] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[5] == 'E' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["14"];
+        }
+        else if (tileCode[0] == 'E' && tileCode[1] == 'W' && tileCode[2] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'W' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["15"];
+        }
+        else if (tileCode[0] == 'E' && tileCode[1] == 'W' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[5] == 'E' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["16"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'E' && tileCode[4] == 'W' && tileCode[6] == 'W' && tileCode[7] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["17"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'E' && tileCode[4] == 'W' && tileCode[6] == 'W' && tileCode[7] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["18"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[2] == 'W' && tileCode[4] == 'W' && tileCode[3] == 'E' && tileCode[6] == 'W' && tileCode[7] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["19"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[2] == 'W' && tileCode[3] == 'E' && tileCode[4] == 'W' && tileCode[6] == 'W' && tileCode[7] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["20"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[2] == 'E' && tileCode[3] == 'E' && tileCode[4] == 'W' && tileCode[6] == 'W' && tileCode[7] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["21"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[2] == 'E' && tileCode[3] == 'E' && tileCode[4] == 'W' && tileCode[6] == 'W' && tileCode[7] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["22"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[2] == 'W' && tileCode[3] == 'E' && tileCode[4] == 'W' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["23"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[2] == 'E' && tileCode[3] == 'E' && tileCode[4] == 'W' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["24"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[3] == 'E' && tileCode[4] == 'E' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["25"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'E' && tileCode[4] == 'E' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["26"];
+        }
+        else if (tileCode[1] == 'W' && tileCode[3] == 'E' && tileCode[4] == 'E' && tileCode[6] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["27"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[4] == 'W' && tileCode[3] == 'W' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["28"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'E' && tileCode[6] == 'E' && tileCode[4] == 'W')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["29"];
+        }
+        else if (tileCode[1] == 'E' && tileCode[3] == 'W' && tileCode[4] == 'E' && tileCode[6] == 'E')
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["30"];
+        }
+        else if (tileCode == "EWWWWEWW")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["31"];
+        }
+        else if (tileCode == "EWEWWWWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["32"];
+        }
+        else if (tileCode == "EWEWWWWW")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["33"];
+        }
+        else if (tileCode == "WWWWWEWW")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["34"];
+        }
+        else if (tileCode == "WWEWWWWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["35"];
+        }
+        else if (tileCode == "WWWWWWWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["36"];
+        }
+        else if (tileCode == "EWWWWWWW")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["37"];
+        }
+        else if (tileCode == "WWEWWWWW")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["38"];
+        }
+        else if (tileCode == "EWWWWWWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["39"];
+        }
+        else if (tileCode == "EWWWWEWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["40"];
+        }
+        else if (tileCode == "WWWWWEWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["41"];
+        }
+        else if (tileCode == "WWEWWEWW")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["42"];
+        }
+        else if (tileCode == "EWEWWEWW")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["43"];
+        }
+        else if (tileCode == "WWEWWEWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["44"];
+        }
+        else if (tileCode == "EWEWWEWE")
+        {
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = waterTileSpriteMap["45"];
+        }
+        #endregion
     }
 
     /// <summary>

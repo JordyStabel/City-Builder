@@ -31,7 +31,7 @@ public class WorldController : MonoBehaviour {
         else
             Instance = this;
 
-        if (loadWorld)
+        if (loadWorld == true)
         {
             loadWorld = false;
             CreateWorldFromSaveFile();
@@ -46,6 +46,7 @@ public class WorldController : MonoBehaviour {
         //World.RandomizeTiles();
 	}
 
+    // Update the game tick
     void Update()
     {
         World.UpdateWorld(Time.deltaTime);

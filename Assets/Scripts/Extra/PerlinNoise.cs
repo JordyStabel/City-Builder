@@ -3,8 +3,17 @@
 //            https://github.com/JordyStabel/City-Builder
 //===================================================================
 
-public enum TileType {
-    Empty,
-    Floor,
-    Water
-};
+using UnityEngine;
+
+public class PerlinNoise : MonoBehaviour {
+
+	// Use this for initialization
+	void Start () {
+		
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		
+	}
+}

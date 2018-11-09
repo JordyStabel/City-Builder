@@ -55,18 +55,23 @@ public class WaterTile : UnityEngine.Tilemaps.Tile {
         }
 
         // Add randomness to the water tiles
+        // Works because this function only get's called for neighbours and not all tiles.
+        // Also, full water tiles never get set else where
         int randomVal = Random.Range(0, 100);
 
         if (randomVal < 15)
         {
+            // 15% chance for lilly-pad
             tileData.sprite = waterSprites[46];
         }
         else if (randomVal >= 15 && randomVal < 35)
         {
+            // 20% chance for wave
             tileData.sprite = waterSprites[48];
         }
         else
         {
+            // Rest is normal water
             tileData.sprite = waterSprites[47];
         }
 
