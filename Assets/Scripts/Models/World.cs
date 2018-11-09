@@ -202,6 +202,15 @@ public class World : IXmlSerializable {
             true        // Can enclose rooms
             ));
 
+        installedBaseObjects.Add("Money Generator", new InstalledObject(
+            "Money Generator",     // InstalledObject ID (type)
+            10,          // Movementcost: 0 = imappable, default = 1
+            2,          // Width, default = 1
+            2,          // Height, default = 1
+            false,      // Links to neighbours and 'forms' one large object, default = false
+            false        // Can enclose rooms
+            ));
+
         installedBaseObjects.Add("Road", new InstalledObject(
             "Road",     // InstalledObject ID (type)
             0.5f,       // Movementcost: 0 = imappable, default = 1

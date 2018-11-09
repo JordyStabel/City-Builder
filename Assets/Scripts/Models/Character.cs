@@ -179,11 +179,6 @@ public class Character : IXmlSerializable {
                     }
                     DestinationTile = supplier.tile;
                     return;
-
-                    // FIXME: This a very wrong way of doing it!
-
-                    // If already on a tile with the required materials, pick them up.
-                    //destinationTile = someTileWithTheMaterials;
                 }
             }
 
