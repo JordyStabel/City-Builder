@@ -16,8 +16,11 @@ public class PerlinMapGeneratorEditor : Editor {
 
         // If any value is changed => generate a new map
         if (DrawDefaultInspector())
-            mapGenerator.GenerateMap();
-
+        {
+            if (mapGenerator.autoUpdate)
+                mapGenerator.GenerateMap();
+        }
+            
         // If button is being pressed => generate & display a new perlin noise map
         if (GUILayout.Button("Generate Perlin Noise"))
             mapGenerator.GenerateMap();

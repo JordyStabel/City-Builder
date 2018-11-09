@@ -35,15 +35,15 @@ public static class PerlinNoise {
         // Scale shouldn't be 0 or negative (can't devide by 0 and a negative number wouldn't work either)
         // Set scale very close to 0
         if (scale <= 0)
-            scale = 0.00001f;
+            scale = 0.0001f;
 
         // Add limits to the min and max values of the noiseHeight
         float maxNoiseHeight = float.MinValue;
         float minNoiseHeight = float.MaxValue;
 
         // Center point of the noise map
-        float halfWidth = width / 2;
-        float halfHeight = height / 2;
+        float halfWidth = width / 2f;
+        float halfHeight = height / 2f;
 
         // Loop through all points in the world
         for (int y = 0; y < height; y++)
@@ -61,8 +61,8 @@ public static class PerlinNoise {
                     // Multiply the scale by frequency to add more randomness and more different values
                     // Intergers give the same value in Unity's perlin noise generation
                     // halfWidth- and height => scale from the center point of the map
-                    float sampleX = (x - halfWidth) / (scale * frequency) + octaveOffsets[i].x;
-                    float sampleY = (y - halfHeight) / (scale * frequency) + octaveOffsets[i].y;
+                    float sampleX = (x - halfWidth) / scale * frequency + octaveOffsets[i].x;
+                    float sampleY = (y - halfHeight) / scale * frequency + octaveOffsets[i].y;
 
                     // Create and set perlin noise value for each point in the world
                     // Mathf.PerlinNoise will give a number between 0-1, so multiply by 2 and substract 1 to posible get negative values aswell
