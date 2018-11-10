@@ -3452,8 +3452,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   floorSprite: {fileID: 21300000, guid: 8c8320cd0da938d4683065a47d79c84e, type: 3}
-  emptySprite: {fileID: 21300000, guid: 5106553c562bcbc4293d28963ba57236, type: 3}
+  emptySprite: {fileID: 21300000, guid: 43f2a3735b6d7e545ba3aeb590e52410, type: 3}
   waterSprite: {fileID: 21300000, guid: f44c3d7a73d0b434582a24217f133c4d, type: 3}
+  sandSprite: {fileID: 21300000, guid: 848ffeeb74eedbc49a27e9bd6961d87d, type: 3}
+  oilSprite: {fileID: 21300000, guid: 59f2e29219b146441801617e0723573c, type: 3}
 --- !u!1 &1042584385
 GameObject:
   m_ObjectHideFlags: 0
@@ -6034,7 +6036,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &1547822738
 MeshRenderer:
   m_ObjectHideFlags: 0

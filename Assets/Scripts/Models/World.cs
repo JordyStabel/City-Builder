@@ -121,6 +121,9 @@ public class World : IXmlSerializable {
         Width = width;
         Height = height;
 
+        // Get Perlin noise map
+        float[,] noiseMap = PerlinNoise.GenerateNoiseMap(width, height, 0, 25, 5, 0.5f, 5, new Vector2(0, 0));
+
         // Create new tile array. Default size: 100 * 100 = 10,000 tiles
         tiles = new Tile[width, height];
 
@@ -130,6 +133,15 @@ public class World : IXmlSerializable {
             for (int y = 0; y < height; y++)
             {
                 tiles[x, y] = new Tile(this, x, y);
+
+                // Add bodies of water to the world
+                if (noiseMap[x, y] <= 0.075f)
+                    tiles[x, y].Type = TileType.Oil;
+                else if (noiseMap[x, y] <= 0.25f)
+                    tiles[x, y].Type = TileType.Water;
+                else if (noiseMap[x, y] <= 0.3f)
+                    tiles[x, y].Type = TileType.Sand;
+
                 tiles[x, y].RegisterTileTypeChangedCallback(OnTileChanged);
                 // Add tile to room number 0 (the world itself)
                 tiles[x, y].room = rooms[0];

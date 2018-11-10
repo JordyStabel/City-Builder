@@ -21,6 +21,12 @@ public class TileSpriteController : MonoBehaviour {
     [Header("Water tile sprite")]
     public Sprite waterSprite;
 
+    [Header("Sand tile sprite")]
+    public Sprite sandSprite;
+
+    [Header("Oild tile sprite")]
+    public Sprite oilSprite;
+
     // Sprites for watertiles
     Sprite[] waterTileSprites;
 
@@ -137,6 +143,10 @@ public class TileSpriteController : MonoBehaviour {
         // Change to correct tile Sprite
         if (tile_Data.Type == TileType.Floor)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = floorSprite;
+        else if (tile_Data.Type == TileType.Sand)
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = sandSprite;
+        else if (tile_Data.Type == TileType.Oil)
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = oilSprite;
         else if (tile_Data.Type == TileType.Empty)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = emptySprite;
         else if (tile_Data.Type == TileType.Water)
@@ -168,18 +178,17 @@ public class TileSpriteController : MonoBehaviour {
                     checkTile = tile.World.GetTileAt(tile.X + x, tile.Y + y);
 
                     // If the tile is null, that means there is no tile (edge of map)
-                    if (checkTile == null || checkTile.Type != TileType.Water)
+                    if (checkTile == null)
                         tileCode += 'E';
 
                     // If we get here it means checkTile is NOT null
-                    else if (checkTile.Type == TileType.Water)
+                    else if (checkTile.Type == TileType.Water || checkTile.Type == TileType.Oil)
                         tileCode += 'W';
 
-                    // It should never come here...
+                    // It's not the desired tile but still a tile
                     else
                     {
                         tileCode += 'E';
-                        Debug.LogError("This shouldn't run => tile is not NULL nor water");
                     }
                 }
             }
