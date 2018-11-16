@@ -21,7 +21,8 @@ public class WorldControllerEditor : Editor
         if (GUILayout.Button("Randomize world"))
         {
             if (WorldController.Instance != null)
-                WorldController.Instance.World.RandomizeTiles();
+                Debug.Log("Test button created.");
+            //WorldController.Instance.World.RandomizeTiles();
             else
                 Debug.LogWarning("Can't access World.");
         }

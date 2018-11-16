@@ -121,11 +121,11 @@ public class World : IXmlSerializable {
         Width = width;
         Height = height;
 
-        // Get Perlin noise map
-        float[,] noiseMap = PerlinNoise.GenerateNoiseMap(width, height, 0, 25, 5, 0.5f, 5, new Vector2(0, 0));
-
         // Create new tile array. Default size: 100 * 100 = 10,000 tiles
         tiles = new Tile[width, height];
+
+        // Get Perlin noise map
+        float[,] noiseMap = PerlinNoise.GenerateNoiseMap(width, height, 0, 25, 5, 0.5f, 5, new Vector2(0, 0));
 
         // Instantiate tiles and adding them to the tiles array
         for (int x = 0; x < width; x++)
@@ -293,41 +293,6 @@ public class World : IXmlSerializable {
                     {
                         PlaceInstalledObject("Wall", tiles[x, y]);
                     }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Test function, randomize tile type
-    /// </summary>
-    public void RandomizeTiles()
-    {
-        Debug.Log("Tiles randomized!");
-
-        int randomValue;
-
-        // For each tile in the world, give it a random tileType
-        for (int x = 0; x < Width; x++)
-        {
-            for (int y = 0; y < Height; y++)
-            {
-                randomValue = UnityEngine.Random.Range(0, 100);
-
-                if (randomValue < 25)
-                {
-                    // 25% chance for water
-                    tiles[x, y].Type = TileType.Water;
-                }
-                else if (randomValue >= 25 && randomValue < 35)
-                {
-                    // 10% chance for floor tile
-                    tiles[x, y].Type = TileType.Floor;
-                }
-                else
-                {
-                    // Rest are empty tiles
-                    tiles[x, y].Type = TileType.Empty;
                 }
             }
         }

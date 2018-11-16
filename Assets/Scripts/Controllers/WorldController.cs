@@ -41,9 +41,6 @@ public class WorldController : MonoBehaviour {
             // Create new world with empty tiles
             CreateEmptyWorld();
         }
-
-        // Randomize all tiles in the world this was just created (thus calling the 'OnTileChanged' function for each tile)
-        //World.RandomizeTiles();
 	}
 
     // Update the game tick

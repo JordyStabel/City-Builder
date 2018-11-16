@@ -33,6 +33,12 @@ public class TileSpriteController : MonoBehaviour {
     // Bind sprites with a naming convention of the water tiles
     Dictionary<string, Sprite> waterTileSpriteMap;
 
+    // Sprites for tiles
+    Sprite[] tileSprites;
+
+    // Bind sprites with a naming convention of the tiles
+    Dictionary<string, Sprite> tileSpriteMap;
+
     // Get reference to the World
     World World { get { return WorldController.Instance.World; } }
 
@@ -40,9 +46,13 @@ public class TileSpriteController : MonoBehaviour {
 
         // Instatiate dictionary that binds a name with a sprite 
         waterTileSpriteMap = new Dictionary<string, Sprite>();
+        tileSpriteMap = new Dictionary<string, Sprite>();
 
         // Load all water tile sprites
         LoadWaterTileSprites();
+
+        // Load all tile sprites
+        LoadTileSprites();
 
         // Instatiate dictionary that binds a GameObject with data 
         tileGameObjectMap = new Dictionary<Tile, GameObject>();
@@ -88,6 +98,17 @@ public class TileSpriteController : MonoBehaviour {
         waterTileSprites = Resources.LoadAll<Sprite>("Sprites/WaterTiles");
         foreach (Sprite sprite in waterTileSprites)
             waterTileSpriteMap[sprite.name] = sprite;
+    }
+
+    /// <summary>
+    /// Load all tile sprites from resource folder
+    /// </summary>
+    private void LoadTileSprites()
+    {
+        // Loading all sprites and adding them to the dictionary
+        tileSprites = Resources.LoadAll<Sprite>("Sprites");
+        foreach (Sprite sprite in tileSprites)
+            tileSpriteMap[sprite.name] = sprite;
     }
 
     #region CURRENTLY NOT IN USE - Unbind pairs in dictionary
@@ -144,7 +165,7 @@ public class TileSpriteController : MonoBehaviour {
         if (tile_Data.Type == TileType.Floor)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = floorSprite;
         else if (tile_Data.Type == TileType.Sand)
-            tile_GameObject.GetComponent<SpriteRenderer>().sprite = sandSprite;
+            tile_GameObject.GetComponent<SpriteRenderer>().sprite = GetCorrectSprite(tile_Data); // Sand correct tile depending on neighbouring tiles
         else if (tile_Data.Type == TileType.Oil)
             tile_GameObject.GetComponent<SpriteRenderer>().sprite = oilSprite;
         else if (tile_Data.Type == TileType.Empty)
@@ -408,15 +429,55 @@ public class TileSpriteController : MonoBehaviour {
         #endregion
     }
 
-    /// <summary>
-    /// Sub function, to make code little cleaner.
-    /// Check if: there are neighbouring tiles, if those tiles have installedObject on them & if those objects are of the same type.
-    /// </summary>
-    /// <param name="tile">Tile to check.</param>
-    /// <param name="installedObject">InstalledObject to compare with.</param>
-    /// <returns>True or false</returns>
-    public bool TileCheck(Tile tile, InstalledObject installedObject)
+
+
+    private Sprite GetCorrectSprite(Tile tile)
     {
-        return (tile != null && tile.InstalledObject != null && tile.InstalledObject.ObjectType == installedObject.ObjectType);
+        string spriteName = tile.Type.ToString() + "_";
+
+        /* Check for neighbours: North, East, South & West (in that order)
+        * Check if: there are neighbouring tiles, 
+        * if those tiles have installedObject on them 
+        * if those objects are of the same type. */
+
+        //Tile tile;
+        int x = tile.X;
+        int y = tile.Y;
+
+        Tile neighbour;
+
+        // Check North
+        neighbour = World.GetTileAt(x, (y + 1));
+        if (TileCheck(neighbour, tile))
+            spriteName += "N";
+
+        // Check East
+        neighbour = World.GetTileAt((x + 1), y);
+        if (TileCheck(neighbour, tile))
+            spriteName += "E";
+
+        // Check South
+        neighbour = World.GetTileAt(x, (y - 1));
+        if (TileCheck(neighbour, tile))
+            spriteName += "S";
+
+        // Check West
+        neighbour = World.GetTileAt((x - 1), y);
+        if (TileCheck(neighbour, tile))
+            spriteName += "W";
+
+        // Return correct sprite
+        return tileSpriteMap[spriteName];
+    }
+
+    /// <summary>
+    /// Checks if check- and reference tile are not null and if the tile-types are of the same type.
+    /// </summary>
+    /// <param name="checkTile">Neighbouring tile</param>
+    /// <param name="referenceTile">Center tile</param>
+    /// <returns>True if neither tile is null and both tileTypes are the same.</returns>
+    public bool TileCheck(Tile checkTile, Tile referenceTile)
+    {
+        return (checkTile != null && referenceTile != null && checkTile.Type == referenceTile.Type);
     }
 }
